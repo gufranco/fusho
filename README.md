@@ -8,9 +8,9 @@
 [![shell](https://img.shields.io/badge/shell-POSIX%20sh-lightgrey)](#portability)
 
 <p align="center">
-  <a href="#quick-start"><strong>Quick start</strong></a> &nbsp;|&nbsp;
-  <a href="#how-it-works">How it works</a> &nbsp;|&nbsp;
-  <a href="#what-it-does-not-do"><strong>Security limits</strong></a> &nbsp;|&nbsp;
+  <a href="#quick-start"><strong>Quick start</strong></a> |
+  <a href="#how-it-works">How it works</a> |
+  <a href="#what-it-does-not-do"><strong>Security limits</strong></a> |
   <a href="#troubleshooting">Troubleshooting</a>
 </p>
 
