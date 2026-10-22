@@ -119,7 +119,7 @@ osm_emit_banner() {
 This is an encrypted message. Only the intended recipient can read it.
 To open it, install osm and pipe this whole block into it:
 
-  brew tap gufranco/osm https://github.com/gufranco/osm && brew install gufranco/osm/osm
+  brew install gufranco/tap/osm
   pbpaste | osm read
 
 What it is: https://github.com/gufranco/osm

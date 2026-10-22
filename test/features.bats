@@ -269,11 +269,16 @@ setup() {
 }
 
 @test "the banner tells a newcomer what the block is and how to open it" {
-  run bash -c "printf 'x\n' | '$OSM_BIN' send alice --no-clipboard"
+  # Arrange
+  local recipient="alice"
 
+  # Act
+  run bash -c "printf 'x\n' | '$OSM_BIN' send ${recipient} --no-clipboard"
+
+  # Assert
   assert_status 0
   assert_output_contains "This is an encrypted message"
-  assert_output_contains "brew tap gufranco/osm"
+  assert_output_contains "brew install gufranco/tap/osm"
   assert_output_contains "osm read"
 }
 
