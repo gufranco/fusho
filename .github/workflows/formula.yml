@@ -2,8 +2,18 @@
 name: formula
 
 on:
-  release:
-    types: [published]
+  workflow_call:
+    inputs:
+      tag:
+        description: The release tag to point the formula at
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag to point the formula at
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -24,7 +34,7 @@ jobs:
       - name: Dispatch the tap's formula-bump workflow
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          TAG: ${{ github.event.release.tag_name }}
+          TAG: ${{ inputs.tag }}
         run: |
           jq -nc --arg tag "${TAG}" \
             '{event_type: "formula-bump", client_payload: {name: "fusho", tag: $tag}}' \
