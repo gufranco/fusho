@@ -1,8 +1,13 @@
 <div align="center">
 
+<h1>fusho</h1>
+
 <strong>Send an encrypted message through any chat, using a GitHub username as the address.</strong>
 
+English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁體中文 (香港)](README.zh-HK.md)
+
 [![ci](https://github.com/gufranco/fusho/actions/workflows/ci.yml/badge.svg)](https://github.com/gufranco/fusho/actions/workflows/ci.yml)
+[![release](https://img.shields.io/github/v/release/gufranco/fusho)](https://github.com/gufranco/fusho/releases)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)](#development)
 [![shell](https://img.shields.io/badge/shell-POSIX%20sh-lightgrey)](#portability)
@@ -16,16 +21,12 @@
 
 </div>
 
-**5** commands · **2** crypto engines · **4** key hosts · **159** tests · **POSIX sh** · **macOS, Linux, BSD** · **zero** runtime dependencies beyond `age`
+Five commands, 161 tests, one POSIX `sh` file, and no runtime dependency beyond `age`.
 
 > [!NOTE]
-> **Threat model, courtesy of [James Mickens](https://www.schneier.com/blog/archives/2015/08/mickens_on_secu.html):** you are either dealing with Mossad or not-Mossad.
->
-> `fusho` is a not-Mossad tool and it is *excellent* at its job, which is defeating a chat retention policy. Your database password is now safe from the intern with workspace admin, from the backup tape nobody remembers provisioning, and from whoever inherits that channel in 2031. Genuinely useful. Also roughly the security equivalent of locking your car in a neighbourhood where nobody was going to steal it.
->
-> Against the Mossad, this repository is an elaborate way to feel productive. They will read the plaintext off your screen while `age` is still picking a nonce, and then they will do something to your laptop firmware that has its own Wikipedia article. YOU'RE GONNA DIE AND THERE'S NOTHING THAT YOU CAN DO ABOUT IT. You will, however, die with a 94% covered test suite and a fully POSIX-compliant shell script, which is more than most people manage.
->
-> The [security limits](#what-it-does-not-do) section is where the honest part lives. Read it before trusting this with anything that would end a career.
+> **Threat model.** fusho keeps a secret out of chat history: the retention policy, the backup nobody remembers configuring, the colleague who inherits the channel in 2031. It does not protect against a keylogger, a nation-state, or the coworker who pastes the plaintext right under the encrypted block "just in case". Those are covered in [what it does not do](#what-it-does-not-do), and mostly by a much larger budget.
+
+`fusho` is 封書, Japanese for a sealed letter: addressed to one person, opened only by them.
 
 ---
 
@@ -43,8 +44,6 @@ UjZQd2NCRWRhVGJZbUFVWjZHUUFEeUJIUGNZTFVoMkc5ZmVRR0ZzCg==
 fusho: copied to the clipboard with pbcopy.
 ```
 
-The block is preceded by a short note telling a first-time recipient what they are looking at and how to open it. It sits above `BEGIN`, where the parser already ignores everything, so it can never corrupt a message. Turn it off with `--no-banner` or `FUSHO_BANNER=0`.
-
 Paste all of it into Slack, Telegram, a Jira ticket, or an email. Alice runs one command:
 
 ```console
@@ -52,68 +51,9 @@ $ pbpaste | fusho read
 database password: correct-horse-battery-staple
 ```
 
-No key exchange, no keyserver, no accounts. Alice needs nothing beyond the SSH key her GitHub profile already publishes.
+Every GitHub account publishes its SSH public keys at `github.com/<user>.keys`. `fusho` encrypts to those keys, and the recipient decrypts with the private key already in their `~/.ssh`. There is no key exchange, keyserver, or account to create.
 
----
-
-## The problem
-
-Pasting a credential into a chat window puts it in someone else's database. Deleting the message afterwards does not remove it from server-side logs, backups, or the recipient's notification history. The usual workaround is to paste it anyway and hope.
-
-## The solution
-
-Every GitHub account already publishes its SSH public keys at `github.com/<user>.keys`. That is a public key the recipient already controls and can already use. `fusho` encrypts to it, and the recipient decrypts with the private key sitting in their `~/.ssh`.
-
-<table>
-<tr>
-<td width="50%" valign="top">
-
-### Address by username
-
-`fusho send alice` fetches Alice's published keys and encrypts to all of them, so she can read the message on any machine she owns.
-
-</td>
-<td width="50%" valign="top">
-
-### Nothing to exchange first
-
-No shared secret, no passphrase over the phone, no keyserver. The only input is a GitHub username.
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-### Inert payload
-
-The output is armored data, never a shell command. A tampered paste cannot execute code on the recipient's machine.
-
-</td>
-<td width="50%" valign="top">
-
-### Ed25519 and RSA
-
-Uses `age` when present, which reaches modern `ssh-ed25519` keys and carries any message size.
-
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
-### Finds the right key
-
-Records the recipient key fingerprint and matches it against local keys, so a non-default filename works without flags.
-
-</td>
-<td width="50%" valign="top">
-
-### One reviewable file
-
-Ships as a single 549-line `dist/fusho` with no runtime dependency on sibling files, so a cautious recipient can read it before running it.
-
-</td>
-</tr>
-</table>
+Above `BEGIN`, the block carries a short note telling a first-time recipient what it is and how to open it. The parser ignores everything above `BEGIN`, so the note can never corrupt a message. Turn it off with `--no-banner` or `FUSHO_BANNER=0`.
 
 ## Quick start
 
@@ -123,21 +63,19 @@ Ships as a single 549-line `dist/fusho` with no runtime dependency on sibling fi
 |:-----|:----|:--------|
 | POSIX `sh` | The tool itself | Preinstalled everywhere. `bash` is not required |
 | `curl`, `ssh-keygen`, `openssl` | Key fetch, fingerprints, base64 | Preinstalled on macOS and Linux |
-| [`age`](https://github.com/FiloSottile/age) | The encryption engine | `brew install age` or `apt install age`. Pulled in automatically by the tap |
+| [`age`](https://github.com/FiloSottile/age) | The encryption engine | `brew install age` or `apt install age`. Installed automatically by the Homebrew formula |
 | `qrencode` | Optional, only for `--qr` | `brew install qrencode` or `apt install qrencode` |
 
 > [!IMPORTANT]
-> Without `age` the tool still works, but falls back to RSA. That path cannot encrypt to an Ed25519 key and caps messages at 470 bytes. Most GitHub accounts publish Ed25519 keys today, so `age` is what makes this useful in practice.
+> Without `age`, fusho falls back to RSA through `openssl`. That path cannot encrypt to an Ed25519 key and caps a message at 470 bytes. Most GitHub accounts publish Ed25519 keys, so install `age`.
 
-### Setup
+### Install
 
 ```bash
 brew install gufranco/tap/fusho
 ```
 
-The formula lives in [gufranco/homebrew-tap](https://github.com/gufranco/homebrew-tap), a small formula-only tap shared across my tools, so tapping it is a fast clone and every release opens a pull request there automatically.
-
-Or from source, which also installs the man page and shell completions:
+The formula lives in [gufranco/homebrew-tap](https://github.com/gufranco/homebrew-tap). Or from source, which also installs the man page and shell completions:
 
 ```bash
 git clone https://github.com/gufranco/fusho.git
@@ -145,7 +83,7 @@ cd fusho
 make install
 ```
 
-Every release also attaches a ready-to-run `dist/fusho` to the [GitHub release](https://github.com/gufranco/fusho/releases), so a recipient can download one file, read it, and run it.
+Every [release](https://github.com/gufranco/fusho/releases) also attaches a ready-to-run `dist/fusho`, so a recipient can download one file, read it, and run it.
 
 ### Verify
 
@@ -162,9 +100,9 @@ identities     ok       1 usable key pair(s) under ~/.ssh
 
 | Command | Purpose |
 |:--------|:--------|
-| `fusho send <user>[@host] [message]` | Encrypt to a user on GitHub, GitLab, Codeberg, SourceHut, or any self-hosted forge. Reads stdin when no message argument is given |
-| `fusho read [file]` | Decrypt. Reads stdin when piped, otherwise reads the clipboard |
-| `fusho keys <user>` | List the keys `fusho` can encrypt to, with fingerprints |
+| `fusho send <user>[@host] [message]` | Encrypt to a user on GitHub, GitLab, Codeberg, SourceHut, or a self-hosted forge. Reads stdin when no message is given |
+| `fusho read [file]` | Decrypt. Reads stdin when piped, otherwise the clipboard |
+| `fusho keys <user>` | List the keys fusho can encrypt to, with fingerprints |
 | `fusho doctor` | Check the local environment and print a remedy for each failure |
 | `fusho version` | Print the version and the active engine |
 
@@ -172,29 +110,18 @@ identities     ok       1 usable key pair(s) under ~/.ssh
 |:-----|:-------|
 | `--to <target>` | Add a recipient. Repeat for several |
 | `--sign <you>` | Sign as a user whose published key you hold |
+| `--require-signature` | On read, refuse a message with no signature |
 | `--accept-new-key` | Accept a recipient whose pinned keys changed |
-| `--require-signature` | On read, refuse a message that carries no signature |
 | `--expires <when>` | Mark the message stale after `30m`, `6h`, `7d` and so on |
 | `--ignore-expiry` | On read, open a message the sender marked as expired |
-| `--keys-file <path>` | Add recipients from a local public key file |
 | `--key <prefix>` | Encrypt to one key only, chosen by fingerprint prefix |
-| `--json` | Print machine readable output |
-| `--qr` | Print the message as a QR code instead of text |
-| `--no-banner` | Omit the short note that tells the recipient what the block is |
+| `--keys-file <path>` | Add recipients from a local public key file |
 | `--identity <path>` | Decrypt with a specific private key |
-| `--identity-command <cmd>` | Read the private key from a command, for keys that live in a secret manager |
+| `--identity-command <cmd>` | Read the private key from a command, for keys kept in a secret manager |
+| `--json` | Print machine-readable output |
+| `--qr` | Print the message as a QR code |
+| `--no-banner` | Omit the note above the block |
 | `--no-clipboard` | Do not copy the result to the clipboard |
-
-### Key hosts
-
-| Host | Recipient syntax | Status |
-|:-----|:-----------------|:-------|
-| GitHub | `alice` | default |
-| GitLab | `alice@gitlab` | verified |
-| Codeberg | `alice@codeberg` | verified |
-| SourceHut | `alice@sourcehut` | verified |
-| Self-hosted Gitea, Forgejo, GitLab | `alice@git.example.com` | any host serving `/<user>.keys` |
-| Bitbucket | not supported | it publishes no public key endpoint, so use `--keys-file` |
 
 ```bash
 printf 'the secret' | fusho send alice          # stdin keeps it out of the process list
@@ -205,7 +132,18 @@ fusho read                                      # with nothing piped, reads the 
 ```
 
 > [!TIP]
-> Pipe the secret on stdin rather than passing it as an argument. An argument is visible to every other user on the machine through the process list.
+> Pipe the secret on stdin instead of passing it as an argument. Every user on the machine can see an argument in the process list.
+
+### Key hosts
+
+| Host | Recipient syntax | Status |
+|:-----|:-----------------|:-------|
+| GitHub | `alice` | Default |
+| GitLab | `alice@gitlab` | Supported |
+| Codeberg | `alice@codeberg` | Supported |
+| SourceHut | `alice@sourcehut` | Supported |
+| Self-hosted Gitea, Forgejo, GitLab | `alice@git.example.com` | Any host serving `/<user>.keys` |
+| Bitbucket | Not supported | It publishes no public key endpoint; use `--keys-file` |
 
 ## How it works
 
@@ -226,27 +164,50 @@ graph LR
     L --> M["decrypt, plaintext to stdout"]
 ```
 
-### Engines
-
 | Engine | Recipient keys | Size limit | Integrity |
 |:-------|:---------------|:-----------|:----------|
-| `age`, used whenever installed | `ssh-ed25519` and `ssh-rsa` | none in practice | authenticated encryption |
-| `openssl` fallback | `ssh-rsa` only | 470 bytes at 4096-bit, 214 at 2048-bit | confidentiality only, no integrity check |
+| `age`, used whenever installed | `ssh-ed25519` and `ssh-rsa` | None in practice | Authenticated encryption |
+| `openssl` fallback | `ssh-rsa` only | 470 bytes at 4096-bit, 214 at 2048-bit | Confidentiality only, no integrity check |
 
-The fallback exists so a recipient who cannot install anything still receives short secrets. It is strictly worse and `fusho send` says so on stderr. It refuses an Ed25519 recipient and refuses an oversized message rather than emitting something broken.
+The fallback lets a recipient who cannot install anything still receive a short secret, and `fusho send` warns on stderr when it is used. It refuses an Ed25519 recipient and an oversized message instead of emitting something broken. fusho implements no cryptography of its own; it delegates to `age` or `openssl`.
 
-`fusho` implements no cryptography of its own. It delegates entirely to `age` or `openssl`.
+### Signing
+
+An unsigned message is confidential but anonymous. `--sign` closes that gap with the SSH key the sender already publishes:
+
+```console
+$ fusho send alice --sign you 'this really is from me'
+
+$ fusho read message.txt
+fusho: signature verified against a key published by 'you'.
+this really is from me
+```
+
+The signature covers the ciphertext and is checked with `ssh-keygen -Y verify` against the claimed sender's published keys. A tampered body, or a `from:` swapped to someone else, fails and prints no plaintext.
+
+### Key pinning
+
+The first message to someone records their fingerprints in `${XDG_CONFIG_HOME:-~/.config}/fusho/known_recipients`. If those keys change later, the send stops:
+
+```console
+$ fusho send alice 'secret'
+fusho: the keys published by alice changed since you last messaged them.
+  pinned:  SHA256:Hb2u7V4cmzORXDF0QulbVVq83T/B6AfX+64LPZS64n0
+  current: SHA256:6FV5K276oVndQJv5uxtytvD/KIrimmU/SmWvEgmmdIo
+  a key rotation looks exactly like an account takeover from here.
+  verify the fingerprint with them out of band, then re-run with --accept-new-key
+```
 
 ## What it does not do
 
 > [!WARNING]
-> **An unsigned message proves nothing about who sent it.** Anyone can encrypt to a public key and claim to be anyone. Sign with `--sign <you>` and the recipient can verify it, or refuse unsigned messages entirely with `--require-signature`. Without that, treat the sender as unverified.
+> **An unsigned message proves nothing about who sent it.** Anyone can encrypt to a public key and claim to be anyone. Sign with `--sign <you>`, or refuse unsigned messages with `--require-signature`.
 
 | Limit | Detail |
 |:------|:-------|
-| Unauthenticated header | The `to:` and `key:` lines are routing metadata. Altering them causes an identity error, never a wrong plaintext, because the body is authenticated by `age` |
-| Readable by every key on the account | The default lets the recipient read on any device, which also means the message is only as protected as their weakest published key. Pin one with `--key` |
-| The forge is the trust anchor | An attacker who adds a key to the recipient's account can read messages sent afterwards. fusho pins the fingerprints it saw the first time and refuses to send if they change, which turns a silent takeover into a loud one |
+| Unauthenticated header | The `to:` and `key:` lines are routing metadata. Altering them causes an identity error, never a wrong plaintext, because `age` authenticates the body |
+| Readable by every key on the account | The recipient can read on any device, so the message is only as safe as their weakest published key. Pin one with `--key` |
+| The forge is the trust anchor | Someone who adds a key to the recipient's account can read messages sent afterwards. Key pinning turns that silent takeover into a refused send |
 
 ## Troubleshooting
 
@@ -266,7 +227,7 @@ ssh-keygen -p -m PEM -f ~/.ssh/id_rsa
 <summary><strong>no local private key matches this message</strong></summary>
 <br>
 
-The message was addressed to a key whose private half is not on this machine. `fusho` prints the fingerprint it wanted. Compare against your own:
+The message was addressed to a key whose private half is not on this machine. fusho prints the fingerprint it wanted; compare it with yours:
 
 ```bash
 ssh-keygen -lf ~/.ssh/*.pub
@@ -278,9 +239,7 @@ ssh-keygen -lf ~/.ssh/*.pub
 <summary><strong>My keys live in 1Password, Secretive, or another SSH agent</strong></summary>
 <br>
 
-`age` can only decrypt with a key file, and an agent deliberately never hands over the private half, so there is nothing for `fusho` to use. When the agent holds a key the message was addressed to, `fusho` says so rather than leaving you guessing.
-
-Supply the key from your secret manager instead. It is written to a private temporary file and removed when `fusho` exits:
+`age` decrypts only with a key file, and an agent never hands over the private half. Supply the key from your secret manager instead; fusho writes it to a private temporary file and removes it on exit:
 
 ```bash
 pbpaste | fusho read --identity-command "op read 'op://Private/ssh-key/private key'"
@@ -308,21 +267,55 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
 
 </details>
 
+<details>
+<summary><strong>I used fusho when it was called osm</strong></summary>
+<br>
+
+Messages that begin with `BEGIN OSM MESSAGE` still open, signatures made under the old name still verify, and `~/.config/osm` moves to `~/.config/fusho` the first time you run it. Environment variables now use the `FUSHO_` prefix.
+
+</details>
+
+## More options
+
+| Behaviour | Detail |
+|:----------|:-------|
+| Compression | Payloads are gzipped when that makes them smaller, marked with an `enc:` header. A 4000-byte repetitive payload becomes a 495-byte message |
+| Weak key warning | A recipient key under 3072-bit RSA is flagged on every send. Change the floor with `FUSHO_MIN_RSA_BITS` |
+| Clipboard expiry | The copied message is cleared after 90 seconds, only if the clipboard still holds it. `FUSHO_CLIPBOARD_TIMEOUT=0` disables it |
+| Custom clipboard | `FUSHO_CLIPBOARD_COPY` and `FUSHO_CLIPBOARD_PASTE` take any command, for tmux or SSH sessions |
+| Message expiry | `--expires 6h` records a deadline that `fusho read` enforces. It is advisory: a message someone can decrypt cannot be un-sent |
+| QR output | `--qr` renders the message for phone-to-laptop transfer, when `qrencode` is installed |
+
+## Portability
+
+The shipped artifact is POSIX `sh`. Each row below passed a full encrypt-and-decrypt round trip.
+
+| Shell | Status |
+|:------|:-------|
+| `dash`, `busybox ash`, `posh` | Supported |
+| `bash` 3.2 and 5.x, `zsh`, `mksh` | Supported |
+| `ksh93` | Not supported. It lacks `local`, so fusho exits with a message naming the problem |
+
+| System | Status |
+|:-------|:-------|
+| macOS | Tahoe on Apple Silicon and Intel, including stock `/bin/sh` and LibreSSL |
+| Linux, glibc | Debian and Ubuntu |
+| Linux, musl | Alpine with `bash` removed |
+| FreeBSD, OpenBSD, NetBSD | Not covered by CI. Their `/bin/sh` supports every construct the artifact uses |
+
 ## Development
 
 | Command | Description |
 |:--------|:------------|
 | `make check` | Format, lint, test, and the coverage gate |
 | `make build` | Concatenate [`lib/`](lib) into `dist/fusho` |
-| `make test` | 70 tests via `bats` |
+| `make test` | The 161 `bats` tests |
 | `make cover` | `kcov`, gated at 91% |
 | `make install` | Copy the artifact, man page and completions into place |
 
-Sources live in [`lib/`](lib) as 8 modules and are concatenated by [`build.sh`](build.sh) into a single artifact, so the file people install stays reviewable in one pass.
+The 10 modules in [`lib/`](lib) are concatenated by [`build.sh`](build.sh) into one 1147-line file, so what people install can be read in one pass. Tests run against real `age` and `openssl` with generated keys, and [`test/helpers/keyserver.py`](test/helpers/keyserver.py) serves the key endpoint locally, so `curl` sees real HTTP status codes.
 
-The coverage figure understates the real number. kcov cannot follow background subshells, `PATH`-sandboxed child processes, or binary streams, so the clipboard readers and several engine-failure paths are exercised by passing tests that the instrumented run cannot see. The gate is set to what kcov can actually observe rather than to a number that looks better.
-
-Tests run against real `age` and real `openssl` with real generated keys. The GitHub endpoint is served by a local HTTP server in [`test/helpers/keyserver.py`](test/helpers/keyserver.py), so status codes and `curl` behaviour are genuine rather than stubbed.
+kcov cannot follow background subshells, `PATH`-sandboxed children, or binary streams, so the clipboard readers and some engine-failure paths are tested without being counted. The gate is set to what kcov can observe.
 
 | Convention | Source |
 |:-----------|:-------|
@@ -331,67 +324,15 @@ Tests run against real `age` and real `openssl` with real generated keys. The Gi
 | Formatting | `shfmt -i 2` |
 | Bash floor | 3.2, so macOS `/bin/bash` is a supported target |
 
-CI targets Linux and macOS. It runs the suite on Ubuntu and on macOS Tahoe for both Apple Silicon and Intel, runs it again under macOS system Bash 3.2, replays it across every POSIX shell dialect in a container, runs it on Alpine with `bash` uninstalled to prove nothing depends on it, enforces the coverage gate, and performs a real cross-platform check: it encrypts on a macOS runner and decrypts on a Linux runner, comparing checksums.
+CI runs the suite on Ubuntu and on macOS Tahoe for Apple Silicon and Intel, again under macOS system Bash 3.2, across every POSIX shell in a container, and on Alpine with `bash` uninstalled. It also encrypts on a macOS runner and decrypts on a Linux runner, comparing checksums.
 
-## Signing
+## Versioning
 
-An unsigned message is confidential but anonymous. Signing closes that gap using the same SSH key the sender already publishes.
-
-```console
-$ fusho send alice --sign you 'this really is from me'
-
-$ fusho read message.txt
-fusho: signature verified against a key published by 'you'.
-this really is from me
-```
-
-The signature covers the ciphertext and is verified with `ssh-keygen -Y verify` against the keys the claimed sender publishes. A tampered body, or a `from:` swapped to someone else, fails verification and no plaintext is printed. Use `--require-signature` on read to refuse anything unsigned.
-
-## Key pinning
-
-The first message to someone records their fingerprints under `${XDG_CONFIG_HOME:-~/.config}/fusho/known_recipients`. If those keys later change, the send stops:
-
-```console
-$ fusho send alice 'secret'
-fusho: the keys published by alice changed since you last messaged them.
-  pinned:  SHA256:Hb2u7V4cmzORXDF0QulbVVq83T/B6AfX+64LPZS64n0
-  current: SHA256:6FV5K276oVndQJv5uxtytvD/KIrimmU/SmWvEgmmdIo
-  a key rotation looks exactly like an account takeover from here.
-  verify the fingerprint with them out of band, then re-run with --accept-new-key
-```
-
-## Smaller conveniences
-
-| Behaviour | Detail |
-|:----------|:-------|
-| Compression | Payloads are gzipped when that makes them smaller, marked with an `enc:` header. A 4000-byte repetitive payload becomes a 495-byte message, and it raises what fits through the size-capped RSA fallback |
-| Weak key warning | A recipient publishing an RSA key below 3072 bits is flagged on every send. Override the floor with `FUSHO_MIN_RSA_BITS` |
-| Clipboard expiry | The copied ciphertext is cleared after 90 seconds, and only if the clipboard still holds it, so nothing you copied since is clobbered. Set `FUSHO_CLIPBOARD_TIMEOUT=0` to disable |
-| Custom clipboard | `FUSHO_CLIPBOARD_COPY` and `FUSHO_CLIPBOARD_PASTE` take any command, for tmux, SSH sessions, or anything the built-in detection misses |
-| Message expiry | `--expires 6h` records a deadline. Past it, `fusho read` refuses and names the deadline, and `--ignore-expiry` overrides. It is advisory: a decryptable blob cannot be un-sent |
-| Passphrase clarity | A passphrase-protected key with no terminal to prompt on now says exactly that, instead of failing inside age |
-| QR output | `--qr` renders the message for phone-to-laptop transfer, when `qrencode` is installed |
-
-## Portability
-
-The shipped artifact is POSIX `sh` with no bash-only constructs. Every row below was verified by a full encrypt-and-decrypt round trip, not by inspection.
-
-| Shell | Status |
-|:------|:-------|
-| `dash`, `busybox ash`, `posh` | round trip verified |
-| `bash` 3.2 and 5.x, `zsh`, `mksh` | round trip verified |
-| `ksh93` | not supported, and it now says so. It lacks `local`, which every other `/bin/sh` provides, so fusho exits with a message naming the problem instead of failing cryptically. No BSD or macOS ships ksh93 as `/bin/sh` |
-
-| System | Status |
-|:-------|:-------|
-| macOS | verified on Tahoe, both Apple Silicon and Intel, including stock `/bin/sh` and LibreSSL |
-| Linux, glibc | verified on Debian and Ubuntu |
-| Linux, musl | verified on Alpine with `bash` removed entirely |
-| FreeBSD, OpenBSD, NetBSD | not covered by CI. The artifact is POSIX `sh` and their `/bin/sh` supports every construct it uses, and an OpenBSD guest did pass a full round trip while the jobs existed, but nothing verifies this on an ongoing basis |
+fusho follows [Semantic Versioning](https://semver.org/). Every release is tagged and published on the [releases page](https://github.com/gufranco/fusho/releases) with its changelog.
 
 ## Alternatives
 
-[`ssh-vault`](https://github.com/ssh-vault/ssh-vault) solves the same problem as a compiled binary and is worth using if you would rather not run a shell script. There is also an [open request](https://github.com/cli/cli/issues/12202) to build this capability into `gh` directly.
+[`ssh-vault`](https://github.com/ssh-vault/ssh-vault) solves the same problem as a compiled binary, if you would rather not run a shell script. There is also an [open request](https://github.com/cli/cli/issues/12202) to build this into `gh`.
 
 ## License
 
