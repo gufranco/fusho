@@ -1,5 +1,16 @@
 # Changelog
 
+# [2.0.0](https://github.com/gufranco/fusho/compare/v1.8.0...v2.0.0) (2026-10-25)
+
+
+* feat!: rename osm to fusho ([de2d2ae](https://github.com/gufranco/fusho/commit/de2d2ae4ed788e46770b212a1f63bf297137eb4d))
+
+
+### BREAKING CHANGES
+
+* the command is fusho, environment variables use the
+FUSHO_ prefix, and new messages begin with BEGIN FUSHO MESSAGE.
+
 # [1.8.0](https://github.com/gufranco/fusho/compare/v1.7.0...v1.8.0) (2026-08-12)
 
 
