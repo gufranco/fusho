@@ -35,7 +35,7 @@ jobs:
         run: shfmt -d -i 2 lib build.sh install.sh scripts/coverage.sh test
 
       - name: Lint the artifact
-        run: shellcheck --severity=style --shell=sh -e SC3043 dist/osm
+        run: shellcheck --severity=style --shell=sh -e SC3043 dist/fusho
 
       - name: Lint the scripts
         run: |
@@ -126,7 +126,7 @@ jobs:
             echo "bash is still present, the check proves nothing" >&2
             exit 1
           fi
-          ./dist/osm version
+          ./dist/fusho version
 
       - name: Full suite under musl
         run: |
@@ -172,8 +172,8 @@ jobs:
           python3 test/helpers/keyserver.py interop/served > interop/port 2>/dev/null &
           for _ in $(seq 1 60); do [ -s interop/port ] && break; sleep 0.1; done
           printf 'interop secret\nacentuacao: cao cedilha\ntrailing line\n' > interop/original.txt
-          OSM_GITHUB_BASE="http://127.0.0.1:$(cat interop/port)" HOME="$PWD/interop" \
-            ./dist/osm send alice --no-clipboard < interop/original.txt > interop/message.txt
+          FUSHO_GITHUB_BASE="http://127.0.0.1:$(cat interop/port)" HOME="$PWD/interop" \
+            ./dist/fusho send alice --no-clipboard < interop/original.txt > interop/message.txt
           shasum -a 256 interop/original.txt
 
       - uses: actions/upload-artifact@v7
@@ -212,7 +212,7 @@ jobs:
           mkdir -p "$HOME/.ssh"
           install -m 0600 interop/.ssh/id_ed25519 "$HOME/.ssh/id_ed25519"
           ssh-keygen -y -f "$HOME/.ssh/id_ed25519" > "$HOME/.ssh/id_ed25519.pub"
-          ./dist/osm read interop/message.txt > recovered.txt
+          ./dist/fusho read interop/message.txt > recovered.txt
           sha256sum recovered.txt interop/original.txt
           cmp recovered.txt interop/original.txt
           echo "macOS to Linux round trip is byte identical"

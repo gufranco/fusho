@@ -15,7 +15,7 @@ setup_file() {
   fixture_publish_keys "$SERVED" "curveuser" "${WORK}/home/.ssh/id_ed25519.pub"
   keyserver_start "$SERVED"
   NOAGE="$(sandbox_path_excluding "${WORK}/bin-noage" age)"
-  export WORK SERVED OSM_GITHUB_BASE KEYSERVER_PID XDG_CONFIG_HOME NOAGE
+  export WORK SERVED FUSHO_GITHUB_BASE KEYSERVER_PID XDG_CONFIG_HOME NOAGE
 }
 
 teardown_file() {
@@ -36,7 +36,7 @@ setup() {
 
 @test "falls back to RSA and says so when age is absent" {
   run env PATH="$NOAGE" HOME="${WORK}/home" bash -c \
-    "printf 'small secret\n' | '$OSM_BIN' send rsauser --no-clipboard"
+    "printf 'small secret\n' | '$FUSHO_BIN' send rsauser --no-clipboard"
 
   assert_status 0
   assert_output_contains "alg: rsa-oaep-sha1"
@@ -45,16 +45,16 @@ setup() {
 
 @test "round trips through the RSA fallback on both sides" {
   printf 'fallback payload with acentuação\n' >"${WORK}/original"
-  env PATH="$NOAGE" HOME="${WORK}/home" "$OSM_BIN" send rsauser --no-clipboard \
+  env PATH="$NOAGE" HOME="${WORK}/home" "$FUSHO_BIN" send rsauser --no-clipboard \
     <"${WORK}/original" >"${WORK}/armored" 2>/dev/null
-  env PATH="$NOAGE" HOME="${WORK}/home" "$OSM_BIN" read "${WORK}/armored" >"${WORK}/recovered"
+  env PATH="$NOAGE" HOME="${WORK}/home" "$FUSHO_BIN" read "${WORK}/armored" >"${WORK}/recovered"
 
   assert_files_identical "${WORK}/original" "${WORK}/recovered"
 }
 
 @test "refuses an Ed25519 recipient when age is absent" {
   run env PATH="$NOAGE" HOME="${WORK}/home" bash -c \
-    "printf 'x\n' | '$OSM_BIN' send curveuser --no-clipboard"
+    "printf 'x\n' | '$FUSHO_BIN' send curveuser --no-clipboard"
 
   assert_status 1
   assert_output_contains "recipient key is not RSA"
@@ -65,7 +65,7 @@ setup() {
   head -c 400 /dev/urandom >"${WORK}/toobig"
 
   run env PATH="$NOAGE" HOME="${WORK}/home" bash -c \
-    "'$OSM_BIN' send rsauser --no-clipboard < '${WORK}/toobig'"
+    "'$FUSHO_BIN' send rsauser --no-clipboard < '${WORK}/toobig'"
 
   assert_status 1
   assert_output_contains "can carry only"
@@ -76,26 +76,26 @@ setup() {
   head -c 214 /dev/urandom >"${WORK}/atlimit"
 
   run env PATH="$NOAGE" HOME="${WORK}/home" bash -c \
-    "'$OSM_BIN' send rsauser --no-clipboard < '${WORK}/atlimit'"
+    "'$FUSHO_BIN' send rsauser --no-clipboard < '${WORK}/atlimit'"
 
   assert_status 0
   assert_output_contains "alg: rsa-oaep-sha1"
 }
 
 @test "guides the user when the private key is in OpenSSH format" {
-  env PATH="$NOAGE" HOME="${WORK}/home" "$OSM_BIN" send opensshuser --no-clipboard \
+  env PATH="$NOAGE" HOME="${WORK}/home" "$FUSHO_BIN" send opensshuser --no-clipboard \
     <<<"secret" >"${WORK}/openssh.armored" 2>/dev/null
 
-  run env PATH="$NOAGE" HOME="${WORK}/home" "$OSM_BIN" read "${WORK}/openssh.armored"
+  run env PATH="$NOAGE" HOME="${WORK}/home" "$FUSHO_BIN" read "${WORK}/openssh.armored"
 
   assert_status 1
   assert_output_contains "ssh-keygen -p -m PEM"
 }
 
 @test "tells the recipient to install age when the message needs it" {
-  "$OSM_BIN" send curveuser 'age only secret' --no-clipboard >"${WORK}/age.armored"
+  "$FUSHO_BIN" send curveuser 'age only secret' --no-clipboard >"${WORK}/age.armored"
 
-  run env PATH="$NOAGE" HOME="${WORK}/home" "$OSM_BIN" read "${WORK}/age.armored"
+  run env PATH="$NOAGE" HOME="${WORK}/home" "$FUSHO_BIN" read "${WORK}/age.armored"
 
   assert_status 1
   assert_output_contains "needs age to open"

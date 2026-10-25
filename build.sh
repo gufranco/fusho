@@ -2,7 +2,7 @@
 set -euo pipefail
 
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-out="${root}/dist/osm"
+out="${root}/dist/fusho"
 entrypoint="${root}/lib/main.sh"
 
 if [[ ! -f "$entrypoint" ]]; then

@@ -2,9 +2,9 @@
 
 <strong>Send an encrypted message through any chat, using a GitHub username as the address.</strong>
 
-[![ci](https://github.com/gufranco/osm/actions/workflows/ci.yml/badge.svg)](https://github.com/gufranco/osm/actions/workflows/ci.yml)
+[![ci](https://github.com/gufranco/fusho/actions/workflows/ci.yml/badge.svg)](https://github.com/gufranco/fusho/actions/workflows/ci.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
-[![coverage](https://img.shields.io/badge/coverage-92%25-brightgreen)](#development)
+[![coverage](https://img.shields.io/badge/coverage-94%25-brightgreen)](#development)
 [![shell](https://img.shields.io/badge/shell-POSIX%20sh-lightgrey)](#portability)
 
 <p align="center">
@@ -21,17 +21,17 @@
 > [!NOTE]
 > **Threat model, courtesy of [James Mickens](https://www.schneier.com/blog/archives/2015/08/mickens_on_secu.html):** you are either dealing with Mossad or not-Mossad.
 >
-> `osm` is a not-Mossad tool and it is *excellent* at its job, which is defeating a chat retention policy. Your database password is now safe from the intern with workspace admin, from the backup tape nobody remembers provisioning, and from whoever inherits that channel in 2031. Genuinely useful. Also roughly the security equivalent of locking your car in a neighbourhood where nobody was going to steal it.
+> `fusho` is a not-Mossad tool and it is *excellent* at its job, which is defeating a chat retention policy. Your database password is now safe from the intern with workspace admin, from the backup tape nobody remembers provisioning, and from whoever inherits that channel in 2031. Genuinely useful. Also roughly the security equivalent of locking your car in a neighbourhood where nobody was going to steal it.
 >
-> Against the Mossad, this repository is an elaborate way to feel productive. They will read the plaintext off your screen while `age` is still picking a nonce, and then they will do something to your laptop firmware that has its own Wikipedia article. YOU'RE GONNA DIE AND THERE'S NOTHING THAT YOU CAN DO ABOUT IT. You will, however, die with a 96% covered test suite and a fully POSIX-compliant shell script, which is more than most people manage.
+> Against the Mossad, this repository is an elaborate way to feel productive. They will read the plaintext off your screen while `age` is still picking a nonce, and then they will do something to your laptop firmware that has its own Wikipedia article. YOU'RE GONNA DIE AND THERE'S NOTHING THAT YOU CAN DO ABOUT IT. You will, however, die with a 94% covered test suite and a fully POSIX-compliant shell script, which is more than most people manage.
 >
 > The [security limits](#what-it-does-not-do) section is where the honest part lives. Read it before trusting this with anything that would end a career.
 
 ---
 
 ```console
-$ osm send alice 'database password: correct-horse-battery-staple'
------BEGIN OSM MESSAGE-----
+$ fusho send alice 'database password: correct-horse-battery-staple'
+-----BEGIN FUSHO MESSAGE-----
 v: 1
 alg: age
 to: alice
@@ -39,16 +39,16 @@ key: SHA256:iD5CQysP5Zu+ugBNVoQSDruYFlSFJSJiFQwUXbpdGh4
 
 YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IHNzaC1lZDI1NTE5IGlENUNReSBhWDNu
 UjZQd2NCRWRhVGJZbUFVWjZHUUFEeUJIUGNZTFVoMkc5ZmVRR0ZzCg==
------END OSM MESSAGE-----
-osm: copied to the clipboard with pbcopy.
+-----END FUSHO MESSAGE-----
+fusho: copied to the clipboard with pbcopy.
 ```
 
-The block is preceded by a short note telling a first-time recipient what they are looking at and how to open it. It sits above `BEGIN`, where the parser already ignores everything, so it can never corrupt a message. Turn it off with `--no-banner` or `OSM_BANNER=0`.
+The block is preceded by a short note telling a first-time recipient what they are looking at and how to open it. It sits above `BEGIN`, where the parser already ignores everything, so it can never corrupt a message. Turn it off with `--no-banner` or `FUSHO_BANNER=0`.
 
 Paste all of it into Slack, Telegram, a Jira ticket, or an email. Alice runs one command:
 
 ```console
-$ pbpaste | osm read
+$ pbpaste | fusho read
 database password: correct-horse-battery-staple
 ```
 
@@ -62,7 +62,7 @@ Pasting a credential into a chat window puts it in someone else's database. Dele
 
 ## The solution
 
-Every GitHub account already publishes its SSH public keys at `github.com/<user>.keys`. That is a public key the recipient already controls and can already use. `osm` encrypts to it, and the recipient decrypts with the private key sitting in their `~/.ssh`.
+Every GitHub account already publishes its SSH public keys at `github.com/<user>.keys`. That is a public key the recipient already controls and can already use. `fusho` encrypts to it, and the recipient decrypts with the private key sitting in their `~/.ssh`.
 
 <table>
 <tr>
@@ -70,7 +70,7 @@ Every GitHub account already publishes its SSH public keys at `github.com/<user>
 
 ### Address by username
 
-`osm send alice` fetches Alice's published keys and encrypts to all of them, so she can read the message on any machine she owns.
+`fusho send alice` fetches Alice's published keys and encrypts to all of them, so she can read the message on any machine she owns.
 
 </td>
 <td width="50%" valign="top">
@@ -109,7 +109,7 @@ Records the recipient key fingerprint and matches it against local keys, so a no
 
 ### One reviewable file
 
-Ships as a single 549-line `dist/osm` with no runtime dependency on sibling files, so a cautious recipient can read it before running it.
+Ships as a single 549-line `dist/fusho` with no runtime dependency on sibling files, so a cautious recipient can read it before running it.
 
 </td>
 </tr>
@@ -132,7 +132,7 @@ Ships as a single 549-line `dist/osm` with no runtime dependency on sibling file
 ### Setup
 
 ```bash
-brew install gufranco/tap/osm
+brew install gufranco/tap/fusho
 ```
 
 The formula lives in [gufranco/homebrew-tap](https://github.com/gufranco/homebrew-tap), a small formula-only tap shared across my tools, so tapping it is a fast clone and every release opens a pull request there automatically.
@@ -140,17 +140,17 @@ The formula lives in [gufranco/homebrew-tap](https://github.com/gufranco/homebre
 Or from source, which also installs the man page and shell completions:
 
 ```bash
-git clone https://github.com/gufranco/osm.git
-cd osm
+git clone https://github.com/gufranco/fusho.git
+cd fusho
 make install
 ```
 
-Every release also attaches a ready-to-run `dist/osm` to the [GitHub release](https://github.com/gufranco/osm/releases), so a recipient can download one file, read it, and run it.
+Every release also attaches a ready-to-run `dist/fusho` to the [GitHub release](https://github.com/gufranco/fusho/releases), so a recipient can download one file, read it, and run it.
 
 ### Verify
 
 ```console
-$ osm doctor
+$ fusho doctor
 age            ok       v1.3.1
 curl           ok
 ssh-keygen     ok
@@ -162,11 +162,11 @@ identities     ok       1 usable key pair(s) under ~/.ssh
 
 | Command | Purpose |
 |:--------|:--------|
-| `osm send <user>[@host] [message]` | Encrypt to a user on GitHub, GitLab, Codeberg, SourceHut, or any self-hosted forge. Reads stdin when no message argument is given |
-| `osm read [file]` | Decrypt. Reads stdin when piped, otherwise reads the clipboard |
-| `osm keys <user>` | List the keys `osm` can encrypt to, with fingerprints |
-| `osm doctor` | Check the local environment and print a remedy for each failure |
-| `osm version` | Print the version and the active engine |
+| `fusho send <user>[@host] [message]` | Encrypt to a user on GitHub, GitLab, Codeberg, SourceHut, or any self-hosted forge. Reads stdin when no message argument is given |
+| `fusho read [file]` | Decrypt. Reads stdin when piped, otherwise reads the clipboard |
+| `fusho keys <user>` | List the keys `fusho` can encrypt to, with fingerprints |
+| `fusho doctor` | Check the local environment and print a remedy for each failure |
+| `fusho version` | Print the version and the active engine |
 
 | Flag | Effect |
 |:-----|:-------|
@@ -197,11 +197,11 @@ identities     ok       1 usable key pair(s) under ~/.ssh
 | Bitbucket | not supported | it publishes no public key endpoint, so use `--keys-file` |
 
 ```bash
-printf 'the secret' | osm send alice          # stdin keeps it out of the process list
-osm send alice:iD5CQy 'only to that one key'  # pin one key by fingerprint prefix
-osm send bob@gitlab 'works across forges'     # gitlab, codeberg, sourcehut, self-hosted
-osm send --to alice --to bob@codeberg 'hi'    # one message, several people
-osm read                                      # with nothing piped, reads the clipboard
+printf 'the secret' | fusho send alice          # stdin keeps it out of the process list
+fusho send alice:iD5CQy 'only to that one key'  # pin one key by fingerprint prefix
+fusho send bob@gitlab 'works across forges'     # gitlab, codeberg, sourcehut, self-hosted
+fusho send --to alice --to bob@codeberg 'hi'    # one message, several people
+fusho read                                      # with nothing piped, reads the clipboard
 ```
 
 > [!TIP]
@@ -211,7 +211,7 @@ osm read                                      # with nothing piped, reads the cl
 
 ```mermaid
 graph LR
-    A["osm send alice"] --> B["GET github.com/alice.keys"]
+    A["fusho send alice"] --> B["GET github.com/alice.keys"]
     B --> C{"supported key?"}
     C -- "no" --> D["error naming the key types found"]
     C -- "yes" --> E{"age installed?"}
@@ -221,7 +221,7 @@ graph LR
     F --> I["armored block, header plus base64"]
     G --> I
     I --> J["any chat transport"]
-    J --> K["osm read"]
+    J --> K["fusho read"]
     K --> L["match fingerprint to a local private key"]
     L --> M["decrypt, plaintext to stdout"]
 ```
@@ -233,9 +233,9 @@ graph LR
 | `age`, used whenever installed | `ssh-ed25519` and `ssh-rsa` | none in practice | authenticated encryption |
 | `openssl` fallback | `ssh-rsa` only | 470 bytes at 4096-bit, 214 at 2048-bit | confidentiality only, no integrity check |
 
-The fallback exists so a recipient who cannot install anything still receives short secrets. It is strictly worse and `osm send` says so on stderr. It refuses an Ed25519 recipient and refuses an oversized message rather than emitting something broken.
+The fallback exists so a recipient who cannot install anything still receives short secrets. It is strictly worse and `fusho send` says so on stderr. It refuses an Ed25519 recipient and refuses an oversized message rather than emitting something broken.
 
-`osm` implements no cryptography of its own. It delegates entirely to `age` or `openssl`.
+`fusho` implements no cryptography of its own. It delegates entirely to `age` or `openssl`.
 
 ## What it does not do
 
@@ -246,7 +246,7 @@ The fallback exists so a recipient who cannot install anything still receives sh
 |:------|:-------|
 | Unauthenticated header | The `to:` and `key:` lines are routing metadata. Altering them causes an identity error, never a wrong plaintext, because the body is authenticated by `age` |
 | Readable by every key on the account | The default lets the recipient read on any device, which also means the message is only as protected as their weakest published key. Pin one with `--key` |
-| The forge is the trust anchor | An attacker who adds a key to the recipient's account can read messages sent afterwards. osm pins the fingerprints it saw the first time and refuses to send if they change, which turns a silent takeover into a loud one |
+| The forge is the trust anchor | An attacker who adds a key to the recipient's account can read messages sent afterwards. fusho pins the fingerprints it saw the first time and refuses to send if they change, which turns a silent takeover into a loud one |
 
 ## Troubleshooting
 
@@ -266,7 +266,7 @@ ssh-keygen -p -m PEM -f ~/.ssh/id_rsa
 <summary><strong>no local private key matches this message</strong></summary>
 <br>
 
-The message was addressed to a key whose private half is not on this machine. `osm` prints the fingerprint it wanted. Compare against your own:
+The message was addressed to a key whose private half is not on this machine. `fusho` prints the fingerprint it wanted. Compare against your own:
 
 ```bash
 ssh-keygen -lf ~/.ssh/*.pub
@@ -278,18 +278,18 @@ ssh-keygen -lf ~/.ssh/*.pub
 <summary><strong>My keys live in 1Password, Secretive, or another SSH agent</strong></summary>
 <br>
 
-`age` can only decrypt with a key file, and an agent deliberately never hands over the private half, so there is nothing for `osm` to use. When the agent holds a key the message was addressed to, `osm` says so rather than leaving you guessing.
+`age` can only decrypt with a key file, and an agent deliberately never hands over the private half, so there is nothing for `fusho` to use. When the agent holds a key the message was addressed to, `fusho` says so rather than leaving you guessing.
 
-Supply the key from your secret manager instead. It is written to a private temporary file and removed when `osm` exits:
+Supply the key from your secret manager instead. It is written to a private temporary file and removed when `fusho` exits:
 
 ```bash
-pbpaste | osm read --identity-command "op read 'op://Private/ssh-key/private key'"
+pbpaste | fusho read --identity-command "op read 'op://Private/ssh-key/private key'"
 ```
 
 </details>
 
 <details>
-<summary><strong>publishes no key osm can encrypt to</strong></summary>
+<summary><strong>publishes no key fusho can encrypt to</strong></summary>
 <br>
 
 The account has only ECDSA keys, which neither engine supports. Ask the recipient for an Ed25519 or RSA key.
@@ -313,7 +313,7 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
 | Command | Description |
 |:--------|:------------|
 | `make check` | Format, lint, test, and the coverage gate |
-| `make build` | Concatenate [`lib/`](lib) into `dist/osm` |
+| `make build` | Concatenate [`lib/`](lib) into `dist/fusho` |
 | `make test` | 70 tests via `bats` |
 | `make cover` | `kcov`, gated at 91% |
 | `make install` | Copy the artifact, man page and completions into place |
@@ -338,10 +338,10 @@ CI targets Linux and macOS. It runs the suite on Ubuntu and on macOS Tahoe for b
 An unsigned message is confidential but anonymous. Signing closes that gap using the same SSH key the sender already publishes.
 
 ```console
-$ osm send alice --sign you 'this really is from me'
+$ fusho send alice --sign you 'this really is from me'
 
-$ osm read message.txt
-osm: signature verified against a key published by 'you'.
+$ fusho read message.txt
+fusho: signature verified against a key published by 'you'.
 this really is from me
 ```
 
@@ -349,11 +349,11 @@ The signature covers the ciphertext and is verified with `ssh-keygen -Y verify` 
 
 ## Key pinning
 
-The first message to someone records their fingerprints under `${XDG_CONFIG_HOME:-~/.config}/osm/known_recipients`. If those keys later change, the send stops:
+The first message to someone records their fingerprints under `${XDG_CONFIG_HOME:-~/.config}/fusho/known_recipients`. If those keys later change, the send stops:
 
 ```console
-$ osm send alice 'secret'
-osm: the keys published by alice changed since you last messaged them.
+$ fusho send alice 'secret'
+fusho: the keys published by alice changed since you last messaged them.
   pinned:  SHA256:Hb2u7V4cmzORXDF0QulbVVq83T/B6AfX+64LPZS64n0
   current: SHA256:6FV5K276oVndQJv5uxtytvD/KIrimmU/SmWvEgmmdIo
   a key rotation looks exactly like an account takeover from here.
@@ -365,10 +365,10 @@ osm: the keys published by alice changed since you last messaged them.
 | Behaviour | Detail |
 |:----------|:-------|
 | Compression | Payloads are gzipped when that makes them smaller, marked with an `enc:` header. A 4000-byte repetitive payload becomes a 495-byte message, and it raises what fits through the size-capped RSA fallback |
-| Weak key warning | A recipient publishing an RSA key below 3072 bits is flagged on every send. Override the floor with `OSM_MIN_RSA_BITS` |
-| Clipboard expiry | The copied ciphertext is cleared after 90 seconds, and only if the clipboard still holds it, so nothing you copied since is clobbered. Set `OSM_CLIPBOARD_TIMEOUT=0` to disable |
-| Custom clipboard | `OSM_CLIPBOARD_COPY` and `OSM_CLIPBOARD_PASTE` take any command, for tmux, SSH sessions, or anything the built-in detection misses |
-| Message expiry | `--expires 6h` records a deadline. Past it, `osm read` refuses and names the deadline, and `--ignore-expiry` overrides. It is advisory: a decryptable blob cannot be un-sent |
+| Weak key warning | A recipient publishing an RSA key below 3072 bits is flagged on every send. Override the floor with `FUSHO_MIN_RSA_BITS` |
+| Clipboard expiry | The copied ciphertext is cleared after 90 seconds, and only if the clipboard still holds it, so nothing you copied since is clobbered. Set `FUSHO_CLIPBOARD_TIMEOUT=0` to disable |
+| Custom clipboard | `FUSHO_CLIPBOARD_COPY` and `FUSHO_CLIPBOARD_PASTE` take any command, for tmux, SSH sessions, or anything the built-in detection misses |
+| Message expiry | `--expires 6h` records a deadline. Past it, `fusho read` refuses and names the deadline, and `--ignore-expiry` overrides. It is advisory: a decryptable blob cannot be un-sent |
 | Passphrase clarity | A passphrase-protected key with no terminal to prompt on now says exactly that, instead of failing inside age |
 | QR output | `--qr` renders the message for phone-to-laptop transfer, when `qrencode` is installed |
 
@@ -380,7 +380,7 @@ The shipped artifact is POSIX `sh` with no bash-only constructs. Every row below
 |:------|:-------|
 | `dash`, `busybox ash`, `posh` | round trip verified |
 | `bash` 3.2 and 5.x, `zsh`, `mksh` | round trip verified |
-| `ksh93` | not supported, and it now says so. It lacks `local`, which every other `/bin/sh` provides, so osm exits with a message naming the problem instead of failing cryptically. No BSD or macOS ships ksh93 as `/bin/sh` |
+| `ksh93` | not supported, and it now says so. It lacks `local`, which every other `/bin/sh` provides, so fusho exits with a message naming the problem instead of failing cryptically. No BSD or macOS ships ksh93 as `/bin/sh` |
 
 | System | Status |
 |:-------|:-------|

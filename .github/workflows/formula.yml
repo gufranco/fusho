@@ -27,5 +27,5 @@ jobs:
           TAG: ${{ github.event.release.tag_name }}
         run: |
           jq -nc --arg tag "${TAG}" \
-            '{event_type: "formula-bump", client_payload: {name: "osm", tag: $tag}}' \
+            '{event_type: "formula-bump", client_payload: {name: "fusho", tag: $tag}}' \
             | gh api --method POST repos/gufranco/homebrew-tap/dispatches --input -

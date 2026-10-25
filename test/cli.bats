@@ -12,7 +12,7 @@ setup_file() {
   keyserver_start "$SERVED"
   NOAGE="$(sandbox_path_excluding "${WORK}/bin-noage" age)"
   NOCLIP="$(sandbox_path_excluding "${WORK}/bin-noclip" none)"
-  export WORK SERVED OSM_GITHUB_BASE KEYSERVER_PID XDG_CONFIG_HOME NOAGE NOCLIP
+  export WORK SERVED FUSHO_GITHUB_BASE KEYSERVER_PID XDG_CONFIG_HOME NOAGE NOCLIP
 }
 
 teardown_file() {
@@ -26,65 +26,65 @@ setup() {
 }
 
 @test "version reports the version and the active engine" {
-  run "$OSM_BIN" version
+  run "$FUSHO_BIN" version
 
   assert_status 0
-  assert_output_contains "osm $(fixture_expected_version)"
+  assert_output_contains "fusho $(fixture_expected_version)"
   assert_output_contains "engine: age"
 }
 
 @test "version reports the fallback engine when age is absent" {
-  run env PATH="$NOAGE" "$OSM_BIN" version
+  run env PATH="$NOAGE" "$FUSHO_BIN" version
 
   assert_status 0
   assert_output_contains "rsa-oaep-sha1"
 }
 
 @test "help prints the usage block" {
-  run "$OSM_BIN" help
+  run "$FUSHO_BIN" help
 
   assert_status 0
-  assert_output_contains "osm send <user>"
-  assert_output_contains "osm read [file]"
+  assert_output_contains "fusho send <user>"
+  assert_output_contains "fusho read [file]"
 }
 
 @test "no arguments prints usage and fails" {
-  run "$OSM_BIN"
+  run "$FUSHO_BIN"
 
   assert_status 1
   assert_output_contains "usage:"
 }
 
 @test "an unknown command is reported" {
-  run "$OSM_BIN" frobnicate
+  run "$FUSHO_BIN" frobnicate
 
   assert_status 1
   assert_output_contains "unknown command 'frobnicate'"
 }
 
 @test "send without a recipient reports usage" {
-  run "$OSM_BIN" send
+  run "$FUSHO_BIN" send
 
   assert_status 1
-  assert_output_contains "usage: osm send"
+  assert_output_contains "usage: fusho send"
 }
 
 @test "send rejects an unknown option" {
-  run "$OSM_BIN" send alice --bogus
+  run "$FUSHO_BIN" send alice --bogus
 
   assert_status 1
   assert_output_contains "unknown option for send"
 }
 
 @test "keys without a recipient reports usage" {
-  run "$OSM_BIN" keys
+  run "$FUSHO_BIN" keys
 
   assert_status 1
-  assert_output_contains "usage: osm keys"
+  assert_output_contains "usage: fusho keys"
 }
 
 @test "doctor passes when every dependency is present" {
-  run "$OSM_BIN" doctor
+  run "$FUSHO_BIN" doctor
 
   assert_status 0
   assert_output_contains "age"
@@ -92,7 +92,7 @@ setup() {
 }
 
 @test "doctor fails and gives a remedy when age is missing" {
-  run env PATH="$NOAGE" HOME="${WORK}/home" "$OSM_BIN" doctor
+  run env PATH="$NOAGE" HOME="${WORK}/home" "$FUSHO_BIN" doctor
 
   assert_status 1
   assert_output_contains "missing"
@@ -100,14 +100,14 @@ setup() {
 }
 
 @test "doctor warns when no usable key pair exists" {
-  run env HOME="${WORK}/bare" "$OSM_BIN" doctor
+  run env HOME="${WORK}/bare" "$FUSHO_BIN" doctor
 
   assert_status 0
   assert_output_contains "no key pair found"
 }
 
 @test "doctor counts usable identities" {
-  run "$OSM_BIN" doctor
+  run "$FUSHO_BIN" doctor
 
   assert_status 0
   assert_output_contains "usable key pair"
@@ -115,21 +115,21 @@ setup() {
 
 @test "send still succeeds when no clipboard tool exists" {
   run env PATH="$NOCLIP" HOME="${WORK}/home" bash -c \
-    "printf 'x\n' | '$OSM_BIN' send alice"
+    "printf 'x\n' | '$FUSHO_BIN' send alice"
 
   assert_status 0
   assert_output_contains "no clipboard tool found"
-  assert_output_contains "-----BEGIN OSM MESSAGE-----"
+  assert_output_contains "-----BEGIN FUSHO MESSAGE-----"
 }
 
 @test "reads the message from the clipboard when nothing is piped" {
   local dir="${WORK}/clipread"
   sandbox_path_excluding "$dir" none >/dev/null
-  "$OSM_BIN" send alice 'clipboard sourced secret' --no-clipboard >"${WORK}/clip.armored"
+  "$FUSHO_BIN" send alice 'clipboard sourced secret' --no-clipboard >"${WORK}/clip.armored"
   printf '%s\n' '#!/usr/bin/env bash' "cat '${WORK}/clip.armored'" >"${dir}/pbpaste"
   chmod +x "${dir}/pbpaste"
 
-  run env PATH="$dir" HOME="${WORK}/home" python3 -c 'import os,pty,sys; sys.exit(os.waitstatus_to_exitcode(pty.spawn(sys.argv[1:])))' "$OSM_BIN" read
+  run env PATH="$dir" HOME="${WORK}/home" python3 -c 'import os,pty,sys; sys.exit(os.waitstatus_to_exitcode(pty.spawn(sys.argv[1:])))' "$FUSHO_BIN" read
 
   assert_status 0
   assert_output_contains "clipboard sourced secret"
@@ -143,11 +143,11 @@ paste_shim() {
 }
 
 run_read_on_tty() {
-  env PATH="$1" HOME="${WORK}/home" "$OSM_BIN" read --clipboard </dev/null
+  env PATH="$1" HOME="${WORK}/home" "$FUSHO_BIN" read --clipboard </dev/null
 }
 
 @test "reads the clipboard with wl-paste" {
-  "$OSM_BIN" send alice 'wayland secret' --no-clipboard >"${WORK}/wl.armored"
+  "$FUSHO_BIN" send alice 'wayland secret' --no-clipboard >"${WORK}/wl.armored"
   paste_shim "${WORK}/bin-wlpaste" wl-paste "${WORK}/wl.armored"
 
   run run_read_on_tty "${WORK}/bin-wlpaste"
@@ -157,7 +157,7 @@ run_read_on_tty() {
 }
 
 @test "reads the clipboard with xclip" {
-  "$OSM_BIN" send alice 'xclip secret' --no-clipboard >"${WORK}/xc.armored"
+  "$FUSHO_BIN" send alice 'xclip secret' --no-clipboard >"${WORK}/xc.armored"
   paste_shim "${WORK}/bin-xclippaste" xclip "${WORK}/xc.armored"
 
   run run_read_on_tty "${WORK}/bin-xclippaste"
@@ -167,7 +167,7 @@ run_read_on_tty() {
 }
 
 @test "reads the clipboard with xsel" {
-  "$OSM_BIN" send alice 'xsel secret' --no-clipboard >"${WORK}/xs.armored"
+  "$FUSHO_BIN" send alice 'xsel secret' --no-clipboard >"${WORK}/xs.armored"
   paste_shim "${WORK}/bin-xselpaste" xsel "${WORK}/xs.armored"
 
   run run_read_on_tty "${WORK}/bin-xselpaste"
@@ -187,7 +187,7 @@ run_read_on_tty() {
 }
 
 @test "the bash completion offers every command" {
-  run /bin/bash -c "source '${OSM_REPO_ROOT}/completions/osm.bash'; COMP_WORDS=(osm ''); COMP_CWORD=1; _osm; printf '%s' \"\${COMPREPLY[*]}\""
+  run /bin/bash -c "source '${FUSHO_REPO_ROOT}/completions/fusho.bash'; COMP_WORDS=(fusho ''); COMP_CWORD=1; _fusho; printf '%s' \"\${COMPREPLY[*]}\""
 
   assert_status 0
   assert_output_contains "send"
@@ -195,7 +195,7 @@ run_read_on_tty() {
 }
 
 @test "the bash completion offers the send flags" {
-  run /bin/bash -c "source '${OSM_REPO_ROOT}/completions/osm.bash'; COMP_WORDS=(osm send --); COMP_CWORD=2; _osm; printf '%s' \"\${COMPREPLY[*]}\""
+  run /bin/bash -c "source '${FUSHO_REPO_ROOT}/completions/fusho.bash'; COMP_WORDS=(fusho send --); COMP_CWORD=2; _fusho; printf '%s' \"\${COMPREPLY[*]}\""
 
   assert_status 0
   assert_output_contains "--sign"
@@ -207,13 +207,13 @@ run_read_on_tty() {
     skip "mandoc is not installed on this machine"
   fi
 
-  run mandoc -T lint "${OSM_REPO_ROOT}/man/osm.1"
+  run mandoc -T lint "${FUSHO_REPO_ROOT}/man/fusho.1"
 
   assert_status 0
 }
 
 @test "every documented flag appears in the usage text" {
-  run "$OSM_BIN" help
+  run "$FUSHO_BIN" help
 
   assert_status 0
   assert_output_contains "--sign"

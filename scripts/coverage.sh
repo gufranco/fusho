@@ -6,7 +6,7 @@ minimum=${1:-95}
 coverage_dir="${root}/coverage"
 runs_dir="${coverage_dir}/runs"
 merged_dir="${coverage_dir}/merged"
-artifact="${root}/dist/osm"
+artifact="${root}/dist/fusho"
 
 kcov_bin=$(command -v kcov)
 bash_bin=$(command -v bash)
@@ -15,7 +15,7 @@ hashbang=$(printf '\043\041')
 rm -rf "$coverage_dir"
 mkdir -p "$runs_dir"
 
-wrapper="${coverage_dir}/osm-instrumented"
+wrapper="${coverage_dir}/fusho-instrumented"
 {
   printf '%s%s\n' "$hashbang" "$bash_bin"
   # shellcheck disable=SC2016
@@ -24,7 +24,7 @@ wrapper="${coverage_dir}/osm-instrumented"
 } >"$wrapper"
 chmod 0755 "$wrapper"
 
-OSM_COVERAGE=1 OSM_BIN="$wrapper" bats "${root}/test"
+FUSHO_COVERAGE=1 FUSHO_BIN="$wrapper" bats "${root}/test"
 
 "$kcov_bin" --merge "$merged_dir" "${runs_dir}"/run-* >/dev/null 2>&1
 

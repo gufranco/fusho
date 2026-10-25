@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-ARTIFACT := dist/osm
+ARTIFACT := dist/fusho
 SOURCES := lib build.sh install.sh scripts/coverage.sh scripts/set-version.sh
 TESTS := test
 COVERAGE_DIR := coverage
@@ -30,7 +30,7 @@ fmt-check:
 lint: build
 	shellcheck --severity=style --shell=sh -e SC3043 $(ARTIFACT)
 	shellcheck --severity=style --shell=bash build.sh install.sh scripts/coverage.sh scripts/set-version.sh
-	shellcheck --severity=style --shell=bash completions/osm.bash
+	shellcheck --severity=style --shell=bash completions/fusho.bash
 	shellcheck --severity=style --shell=bash -e SC2154 $(TESTS)/*.bats $(TESTS)/helpers/*.bash
 
 test: build

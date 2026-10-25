@@ -19,7 +19,7 @@ setup_file() {
   ODD="$(sandbox_path_excluding "${WORK}/bin-odd" openssl)"
   printf '%s\n' '#!/usr/bin/env bash' 'printf "WeirdSSL 9.9\n"' >"${ODD}/openssl"
   chmod +x "${ODD}/openssl"
-  export WORK SERVED OSM_GITHUB_BASE KEYSERVER_PID XDG_CONFIG_HOME NO_OPENSSL NO_CURL NO_KEYGEN LIBRE ODD
+  export WORK SERVED FUSHO_GITHUB_BASE KEYSERVER_PID XDG_CONFIG_HOME NO_OPENSSL NO_CURL NO_KEYGEN LIBRE ODD
 }
 
 teardown_file() {
@@ -33,35 +33,35 @@ setup() {
 }
 
 @test "reports an unexpected HTTP status from the key host" {
-  run bash -c "printf 'x\n' | '$OSM_BIN' send status503 --no-clipboard"
+  run bash -c "printf 'x\n' | '$FUSHO_BIN' send status503 --no-clipboard"
 
   assert_status 1
   assert_output_contains "unexpected HTTP 503"
 }
 
 @test "doctor flags a missing openssl" {
-  run env PATH="$NO_OPENSSL" HOME="${WORK}/home" "$OSM_BIN" doctor
+  run env PATH="$NO_OPENSSL" HOME="${WORK}/home" "$FUSHO_BIN" doctor
 
   assert_status 1
   assert_output_contains "install openssl"
 }
 
 @test "doctor flags a missing curl" {
-  run env PATH="$NO_CURL" HOME="${WORK}/home" "$OSM_BIN" doctor
+  run env PATH="$NO_CURL" HOME="${WORK}/home" "$FUSHO_BIN" doctor
 
   assert_status 1
   assert_output_contains "curl is required"
 }
 
 @test "doctor flags a missing ssh-keygen" {
-  run env PATH="$NO_KEYGEN" HOME="${WORK}/home" "$OSM_BIN" doctor
+  run env PATH="$NO_KEYGEN" HOME="${WORK}/home" "$FUSHO_BIN" doctor
 
   assert_status 1
   assert_output_contains "install openssh"
 }
 
 @test "doctor names LibreSSL and explains the padding pin" {
-  run env PATH="$LIBRE" HOME="${WORK}/home" "$OSM_BIN" doctor
+  run env PATH="$LIBRE" HOME="${WORK}/home" "$FUSHO_BIN" doctor
 
   assert_status 0
   assert_output_contains "LibreSSL"
@@ -69,32 +69,32 @@ setup() {
 }
 
 @test "version tolerates an unrecognised openssl build" {
-  run env PATH="$ODD" HOME="${WORK}/home" "$OSM_BIN" version
+  run env PATH="$ODD" HOME="${WORK}/home" "$FUSHO_BIN" version
 
   assert_status 0
-  assert_output_contains "osm $(fixture_expected_version)"
+  assert_output_contains "fusho $(fixture_expected_version)"
 }
 
 @test "reports no identity when the ssh directory holds no public keys" {
-  printf 'x\n' | "$OSM_BIN" send alice --no-clipboard >"${WORK}/message"
+  printf 'x\n' | "$FUSHO_BIN" send alice --no-clipboard >"${WORK}/message"
 
-  HOME="${WORK}/nokeys" run "$OSM_BIN" read "${WORK}/message"
+  HOME="${WORK}/nokeys" run "$FUSHO_BIN" read "${WORK}/message"
 
   assert_status 1
   assert_output_contains "no local private key matches"
 }
 
 @test "send accepts a double dash before the message" {
-  run bash -c "'$OSM_BIN' send alice --no-clipboard -- 'dashed secret' | '$OSM_BIN' read"
+  run bash -c "'$FUSHO_BIN' send alice --no-clipboard -- 'dashed secret' | '$FUSHO_BIN' read"
 
   assert_status 0
   assert_output_contains "dashed secret"
 }
 
 @test "read accepts a double dash before the file" {
-  "$OSM_BIN" send alice 'dashed read' --no-clipboard >"${WORK}/dashed"
+  "$FUSHO_BIN" send alice 'dashed read' --no-clipboard >"${WORK}/dashed"
 
-  run "$OSM_BIN" read -- "${WORK}/dashed"
+  run "$FUSHO_BIN" read -- "${WORK}/dashed"
 
   assert_status 0
   assert_output_contains "dashed read"
@@ -106,7 +106,7 @@ setup() {
   printf '%s\n' '#!/usr/bin/env bash' "cat >'${WORK}/wl.out'" >"${dir}/wl-copy"
   chmod +x "${dir}/wl-copy"
 
-  run env PATH="$dir" HOME="${WORK}/home" bash -c "printf 'x\n' | '$OSM_BIN' send alice"
+  run env PATH="$dir" HOME="${WORK}/home" bash -c "printf 'x\n' | '$FUSHO_BIN' send alice"
 
   assert_status 0
   assert_output_contains "copied to the clipboard with wl-copy"
@@ -118,7 +118,7 @@ setup() {
   printf '%s\n' '#!/usr/bin/env bash' "cat >'${WORK}/xclip.out'" >"${dir}/xclip"
   chmod +x "${dir}/xclip"
 
-  run env PATH="$dir" HOME="${WORK}/home" bash -c "printf 'x\n' | '$OSM_BIN' send alice"
+  run env PATH="$dir" HOME="${WORK}/home" bash -c "printf 'x\n' | '$FUSHO_BIN' send alice"
 
   assert_status 0
   assert_output_contains "copied to the clipboard with xclip"
@@ -130,7 +130,7 @@ setup() {
   printf '%s\n' '#!/usr/bin/env bash' "cat >'${WORK}/xsel.out'" >"${dir}/xsel"
   chmod +x "${dir}/xsel"
 
-  run env PATH="$dir" HOME="${WORK}/home" bash -c "printf 'x\n' | '$OSM_BIN' send alice"
+  run env PATH="$dir" HOME="${WORK}/home" bash -c "printf 'x\n' | '$FUSHO_BIN' send alice"
 
   assert_status 0
   assert_output_contains "copied to the clipboard with xsel"

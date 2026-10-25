@@ -28,8 +28,8 @@
       {
         "assets": [
           {
-            "path": "dist/osm",
-            "label": "osm ${nextRelease.gitTag} (single-file executable)"
+            "path": "dist/fusho",
+            "label": "fusho ${nextRelease.gitTag} (single-file executable)"
           }
         ]
       }

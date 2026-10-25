@@ -12,8 +12,8 @@ setup_file() {
   fixture_publish_keys "$SERVED" "alice" "${WORK}/home/.ssh/id_ed25519_personal.pub"
   keyserver_start "$SERVED"
   ADDRESSED="$(fixture_fingerprint "${WORK}/home/.ssh/id_ed25519_personal.pub")"
-  HOME="${WORK}/home" "$OSM_BIN" send alice 'the recovered secret' --no-clipboard >"${WORK}/message"
-  export WORK SERVED OSM_GITHUB_BASE KEYSERVER_PID XDG_CONFIG_HOME ADDRESSED
+  HOME="${WORK}/home" "$FUSHO_BIN" send alice 'the recovered secret' --no-clipboard >"${WORK}/message"
+  export WORK SERVED FUSHO_GITHUB_BASE KEYSERVER_PID XDG_CONFIG_HOME ADDRESSED
 }
 
 teardown_file() {
@@ -27,21 +27,21 @@ setup() {
 }
 
 @test "finds the matching identity under a non-default filename" {
-  run "$OSM_BIN" read "${WORK}/message"
+  run "$FUSHO_BIN" read "${WORK}/message"
 
   assert_status 0
   assert_output_contains "the recovered secret"
 }
 
 @test "reads the message from stdin" {
-  run bash -c "'$OSM_BIN' read < '${WORK}/message'"
+  run bash -c "'$FUSHO_BIN' read < '${WORK}/message'"
 
   assert_status 0
   assert_output_contains "the recovered secret"
 }
 
 @test "names the addressed fingerprint when no local key matches" {
-  HOME="${WORK}/stranger" run "$OSM_BIN" read "${WORK}/message"
+  HOME="${WORK}/stranger" run "$FUSHO_BIN" read "${WORK}/message"
 
   assert_status 1
   assert_output_contains "no local private key matches"
@@ -51,34 +51,34 @@ setup() {
 @test "rejects a message whose body was altered" {
   fixture_tamper_body "${WORK}/message" "${WORK}/tampered"
 
-  run "$OSM_BIN" read "${WORK}/tampered"
+  run "$FUSHO_BIN" read "${WORK}/tampered"
 
   assert_status 1
   assert_output_lacks "the recovered secret"
 }
 
 @test "reports a truncated message missing its closing line" {
-  grep -v -- "-----END OSM MESSAGE-----" "${WORK}/message" >"${WORK}/truncated"
+  grep -v -- "-----END FUSHO MESSAGE-----" "${WORK}/message" >"${WORK}/truncated"
 
-  run "$OSM_BIN" read "${WORK}/truncated"
+  run "$FUSHO_BIN" read "${WORK}/truncated"
 
   assert_status 1
   assert_output_contains "truncated"
 }
 
-@test "reports input that is not an osm message at all" {
+@test "reports input that is not an fusho message at all" {
   printf 'just some chat text\n' >"${WORK}/noise"
 
-  run "$OSM_BIN" read "${WORK}/noise"
+  run "$FUSHO_BIN" read "${WORK}/noise"
 
   assert_status 1
-  assert_output_contains "no osm message found"
+  assert_output_contains "no fusho message found"
 }
 
 @test "reports a body that is not valid base64" {
   fixture_corrupt_body "${WORK}/message" "${WORK}/corrupt"
 
-  run "$OSM_BIN" read "${WORK}/corrupt"
+  run "$FUSHO_BIN" read "${WORK}/corrupt"
 
   assert_status 1
   assert_output_lacks "the recovered secret"
@@ -87,7 +87,7 @@ setup() {
 @test "reports a message with no key header" {
   grep -v '^key: ' "${WORK}/message" >"${WORK}/nokey"
 
-  run "$OSM_BIN" read "${WORK}/nokey"
+  run "$FUSHO_BIN" read "${WORK}/nokey"
 
   assert_status 1
   assert_output_contains "no key header"
@@ -96,35 +96,35 @@ setup() {
 @test "reports an algorithm it does not understand" {
   sed 's/^alg: age$/alg: future-cipher/' "${WORK}/message" >"${WORK}/future"
 
-  run "$OSM_BIN" read "${WORK}/future"
+  run "$FUSHO_BIN" read "${WORK}/future"
 
   assert_status 1
   assert_output_contains "unknown algorithm"
 }
 
 @test "honours an explicit identity override" {
-  run "$OSM_BIN" read --identity "${WORK}/home/.ssh/id_ed25519_personal" "${WORK}/message"
+  run "$FUSHO_BIN" read --identity "${WORK}/home/.ssh/id_ed25519_personal" "${WORK}/message"
 
   assert_status 0
   assert_output_contains "the recovered secret"
 }
 
 @test "reports an identity override that does not exist" {
-  run "$OSM_BIN" read --identity "${WORK}/nope" "${WORK}/message"
+  run "$FUSHO_BIN" read --identity "${WORK}/nope" "${WORK}/message"
 
   assert_status 1
   assert_output_contains "does not exist"
 }
 
 @test "reports a missing input file" {
-  run "$OSM_BIN" read "${WORK}/absent-file"
+  run "$FUSHO_BIN" read "${WORK}/absent-file"
 
   assert_status 1
   assert_output_contains "does not exist"
 }
 
 @test "rejects an unknown option" {
-  run "$OSM_BIN" read --bogus
+  run "$FUSHO_BIN" read --bogus
 
   assert_status 1
   assert_output_contains "unknown option for read"
@@ -137,13 +137,13 @@ setup() {
   local agentkey="${WORK}/agentonly"
   ssh-keygen -q -t ed25519 -N '' -f "$agentkey" </dev/null
   fixture_publish_keys "$SERVED" "agentuser" "${agentkey}.pub"
-  "$OSM_BIN" send agentuser 'for the agent user' --no-clipboard >"${WORK}/agent.armored" 2>/dev/null
-  local sock="/tmp/osm-test-agent-$$.sock"
+  "$FUSHO_BIN" send agentuser 'for the agent user' --no-clipboard >"${WORK}/agent.armored" 2>/dev/null
+  local sock="/tmp/fusho-test-agent-$$.sock"
   rm -f "$sock"
   eval "$(ssh-agent -a "$sock" -s)" >/dev/null
   ssh-add -q "$agentkey" 2>/dev/null
 
-  HOME="${WORK}/stranger" run "$OSM_BIN" read "${WORK}/agent.armored"
+  HOME="${WORK}/stranger" run "$FUSHO_BIN" read "${WORK}/agent.armored"
 
   ssh-agent -k >/dev/null 2>&1
   rm -f "$sock"
@@ -153,14 +153,14 @@ setup() {
 }
 
 @test "stays quiet about agents when none holds the key" {
-  run "$OSM_BIN" read "${WORK}/message" --identity "${WORK}/absent-key"
+  run "$FUSHO_BIN" read "${WORK}/message" --identity "${WORK}/absent-key"
 
   assert_status 1
   assert_output_lacks "ssh agent does hold"
 }
 
 @test "reads the private key from a command" {
-  run "$OSM_BIN" read "${WORK}/message" \
+  run "$FUSHO_BIN" read "${WORK}/message" \
     --identity-command "cat ${WORK}/home/.ssh/id_ed25519_personal"
 
   assert_status 0
@@ -168,23 +168,23 @@ setup() {
 }
 
 @test "reports a failing identity command" {
-  run "$OSM_BIN" read "${WORK}/message" --identity-command "false"
+  run "$FUSHO_BIN" read "${WORK}/message" --identity-command "false"
 
   assert_status 1
   assert_output_contains "identity command"
 }
 
 @test "reports an identity command that produces nothing" {
-  run "$OSM_BIN" read "${WORK}/message" --identity-command "true"
+  run "$FUSHO_BIN" read "${WORK}/message" --identity-command "true"
 
   assert_status 1
   assert_output_contains "produced nothing"
 }
 
 @test "names the whole block when the paste is missing it" {
-  printf 'brew install gufranco/osm/osm\n' >"${WORK}/wrongpaste"
+  printf 'brew install gufranco/fusho/fusho\n' >"${WORK}/wrongpaste"
 
-  run "$OSM_BIN" read "${WORK}/wrongpaste"
+  run "$FUSHO_BIN" read "${WORK}/wrongpaste"
 
   assert_status 1
   assert_output_contains "copy the whole block"

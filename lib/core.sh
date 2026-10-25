@@ -1,48 +1,49 @@
-OSM_VERSION="1.8.0"
-OSM_FORMAT_VERSION="1"
-OSM_GITHUB_BASE="${OSM_GITHUB_BASE:-https://github.com}"
-OSM_HTTP_TIMEOUT="${OSM_HTTP_TIMEOUT:-10}"
-OSM_ARMOR_BEGIN="-----BEGIN OSM MESSAGE-----"
-OSM_ARMOR_END="-----END OSM MESSAGE-----"
-OSM_OAEP_OVERHEAD=42
-OSM_SIG_NAMESPACE="osm"
-OSM_MIN_RSA_BITS="${OSM_MIN_RSA_BITS:-3072}"
-OSM_CLIPBOARD_TIMEOUT="${OSM_CLIPBOARD_TIMEOUT:-90}"
-OSM_CLIPBOARD_COPY="${OSM_CLIPBOARD_COPY:-}"
-OSM_CLIPBOARD_PASTE="${OSM_CLIPBOARD_PASTE:-}"
-OSM_BANNER="${OSM_BANNER:-1}"
-OSM_WORKSPACE=""
+FUSHO_VERSION="1.8.0"
+FUSHO_FORMAT_VERSION="1"
+FUSHO_GITHUB_BASE="${FUSHO_GITHUB_BASE:-https://github.com}"
+FUSHO_HTTP_TIMEOUT="${FUSHO_HTTP_TIMEOUT:-10}"
+FUSHO_ARMOR_BEGIN="-----BEGIN FUSHO MESSAGE-----"
+FUSHO_ARMOR_END="-----END FUSHO MESSAGE-----"
+FUSHO_OAEP_OVERHEAD=42
+FUSHO_SIG_NAMESPACE="fusho"
+FUSHO_LEGACY_NAME="osm"
+FUSHO_MIN_RSA_BITS="${FUSHO_MIN_RSA_BITS:-3072}"
+FUSHO_CLIPBOARD_TIMEOUT="${FUSHO_CLIPBOARD_TIMEOUT:-90}"
+FUSHO_CLIPBOARD_COPY="${FUSHO_CLIPBOARD_COPY:-}"
+FUSHO_CLIPBOARD_PASTE="${FUSHO_CLIPBOARD_PASTE:-}"
+FUSHO_BANNER="${FUSHO_BANNER:-1}"
+FUSHO_WORKSPACE=""
 
-osm_die() {
-  printf 'osm: %s\n' "$1" >&2
+fusho_die() {
+  printf 'fusho: %s\n' "$1" >&2
   exit "${2:-1}"
 }
 
-osm_warn() {
-  printf 'osm: %s\n' "$1" >&2
+fusho_warn() {
+  printf 'fusho: %s\n' "$1" >&2
 }
 
-osm_cleanup() {
-  if [ -n "$OSM_WORKSPACE" ]; then
-    rm -rf "$OSM_WORKSPACE"
-    OSM_WORKSPACE=""
+fusho_cleanup() {
+  if [ -n "$FUSHO_WORKSPACE" ]; then
+    rm -rf "$FUSHO_WORKSPACE"
+    FUSHO_WORKSPACE=""
   fi
 }
 
-osm_init_workspace() {
-  if [ -z "$OSM_WORKSPACE" ]; then
-    OSM_WORKSPACE=$(mktemp -d "${TMPDIR:-/tmp}/osm-XXXXXX")
-    chmod 700 "$OSM_WORKSPACE"
+fusho_init_workspace() {
+  if [ -z "$FUSHO_WORKSPACE" ]; then
+    FUSHO_WORKSPACE=$(mktemp -d "${TMPDIR:-/tmp}/fusho-XXXXXX")
+    chmod 700 "$FUSHO_WORKSPACE"
   fi
 }
 
-osm_have() {
+fusho_have() {
   command -v "$1" >/dev/null 2>&1
 }
 
-osm_openssl_flavor() {
+fusho_openssl_flavor() {
   local version
-  if ! osm_have openssl; then
+  if ! fusho_have openssl; then
     printf 'absent\n'
     return 0
   fi
@@ -54,15 +55,15 @@ osm_openssl_flavor() {
   esac
 }
 
-osm_probe_local() {
+fusho_probe_local() {
   local probe="ok"
   [ "$probe" = "ok" ]
 }
 
-osm_require_local() {
-  if ! osm_probe_local 2>/dev/null; then
-    printf 'osm: this shell does not support "local".\n' >&2
-    printf '  ksh93 and Solaris sh are the usual cause. run osm with /bin/sh instead:\n' >&2
+fusho_require_local() {
+  if ! fusho_probe_local 2>/dev/null; then
+    printf 'fusho: this shell does not support "local".\n' >&2
+    printf '  ksh93 and Solaris sh are the usual cause. run fusho with /bin/sh instead:\n' >&2
     printf '    sh %s <arguments>\n' "$0" >&2
     exit 1
   fi

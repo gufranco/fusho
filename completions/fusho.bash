@@ -1,7 +1,7 @@
 # shellcheck shell=bash
 # shellcheck disable=SC2207
 
-_osm() {
+_fusho() {
   local cur prev commands send_opts read_opts
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD - 1]}"
@@ -29,4 +29,4 @@ _osm() {
   esac
 }
 
-complete -F _osm osm
+complete -F _fusho fusho

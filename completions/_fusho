@@ -1,6 +1,6 @@
-#compdef osm
+#compdef fusho
 
-_osm() {
+_fusho() {
   local -a commands
   commands=(
     'send:encrypt a message to a user'
@@ -38,4 +38,4 @@ _osm() {
   esac
 }
 
-_osm "$@"
+_fusho "$@"

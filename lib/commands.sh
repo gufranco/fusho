@@ -1,4 +1,4 @@
-osm_cmd_send() {
+fusho_cmd_send() {
   local prefix="" message="" no_clipboard=0 target="" literal=0
   local targets="" keyfiles="" as_json=0 sign_as="" accept_new=0 want_qr=0 expires="" no_banner=0
   while [ $# -gt 0 ]; do
@@ -17,7 +17,7 @@ osm_cmd_send() {
         ;;
       --keys-file)
         if [ ! -f "${2:-}" ]; then
-          osm_die "key file '${2:-}' does not exist."
+          fusho_die "key file '${2:-}' does not exist."
         fi
         keyfiles="${keyfiles}${2}
 "
@@ -50,7 +50,7 @@ osm_cmd_send() {
         continue
         ;;
       --expires)
-        expires=$(osm_expiry_stamp "${2:-}") || exit 1
+        expires=$(fusho_expiry_stamp "${2:-}") || exit 1
         shift 2
         continue
         ;;
@@ -64,7 +64,7 @@ osm_cmd_send() {
         shift
         continue
         ;;
-      -*) osm_die "unknown option for send: $1" ;;
+      -*) fusho_die "unknown option for send: $1" ;;
       *) ;;
       esac
     fi
@@ -83,20 +83,20 @@ osm_cmd_send() {
 ${targets}"
   fi
   if [ -z "$targets" ] && [ -z "$keyfiles" ]; then
-    osm_die "usage: osm send <user>[@host][:<fingerprint-prefix>] [message]"
+    fusho_die "usage: fusho send <user>[@host][:<fingerprint-prefix>] [message]"
   fi
-  osm_send_run "$targets" "$keyfiles" "$prefix" "$message" "$no_clipboard" "$as_json" "$sign_as" "$accept_new" "$want_qr" "$expires" "$no_banner"
+  fusho_send_run "$targets" "$keyfiles" "$prefix" "$message" "$no_clipboard" "$as_json" "$sign_as" "$accept_new" "$want_qr" "$expires" "$no_banner"
 }
 
-osm_send_run() {
+fusho_send_run() {
   local targets="$1" keyfiles="$2" prefix="$3" message="$4" no_clipboard="$5" as_json="$6"
   local sign_as="$7" accept_new="$8" want_qr="$9"
   shift 9
   local expires="$1" no_banner="$2"
   local work supported selected selected_fps plaintext ciphertext armor alg copier tofile
   local sigfile="" signature="" encoding="" compressed="" signer="" delivery=""
-  osm_init_workspace
-  work="$OSM_WORKSPACE"
+  fusho_init_workspace
+  work="$FUSHO_WORKSPACE"
   supported="${work}/supported.keys"
   selected="${work}/selected.keys"
   selected_fps="${work}/selected.fps"
@@ -104,36 +104,36 @@ osm_send_run() {
   ciphertext="${work}/cipher"
   armor="${work}/armor"
   tofile="${work}/recipients"
-  osm_collect_recipients "$targets" "$keyfiles" "$supported" "$tofile" "$work" "$accept_new"
-  osm_select_keys "$supported" "$prefix" "$selected" "$selected_fps"
+  fusho_collect_recipients "$targets" "$keyfiles" "$supported" "$tofile" "$work" "$accept_new"
+  fusho_select_keys "$supported" "$prefix" "$selected" "$selected_fps"
   if [ -n "$prefix" ]; then
-    osm_reject_bad_pin "$(head -1 "$tofile")" "$prefix" "$supported" "$selected_fps"
+    fusho_reject_bad_pin "$(head -1 "$tofile")" "$prefix" "$supported" "$selected_fps"
   fi
-  osm_read_plaintext "$plaintext" "$message"
+  fusho_read_plaintext "$plaintext" "$message"
   compressed="${work}/plain.gz"
-  if osm_compress "$plaintext" "$compressed"; then
+  if fusho_compress "$plaintext" "$compressed"; then
     encoding="gzip"
     mv "$compressed" "$plaintext"
   fi
-  if osm_have age; then
+  if fusho_have age; then
     alg="age"
-    osm_encrypt_age "$selected" "$plaintext" "$ciphertext"
+    fusho_encrypt_age "$selected" "$plaintext" "$ciphertext"
   else
     alg="rsa-oaep-sha1"
-    osm_warn "age is not installed. falling back to RSA, which is size limited and provides no integrity check."
-    osm_encrypt_openssl "$selected" "$plaintext" "$ciphertext" "$work"
+    fusho_warn "age is not installed. falling back to RSA, which is size limited and provides no integrity check."
+    fusho_encrypt_openssl "$selected" "$plaintext" "$ciphertext" "$work"
   fi
   if [ -n "$sign_as" ]; then
     sigfile="${work}/signature"
-    signer=$(osm_sign_identity "$sign_as" "$work") || exit 1
-    osm_sign_ciphertext "$signer" "$ciphertext" "$sigfile"
+    signer=$(fusho_sign_identity "$sign_as" "$work") || exit 1
+    fusho_sign_ciphertext "$signer" "$ciphertext" "$sigfile"
     signature=$(openssl base64 -A -in "$sigfile")
   fi
-  osm_emit_armor "$alg" "$tofile" "$selected_fps" "$ciphertext" "$sign_as" "$signature" "$encoding" "$expires" >"$armor"
+  fusho_emit_armor "$alg" "$tofile" "$selected_fps" "$ciphertext" "$sign_as" "$signature" "$encoding" "$expires" >"$armor"
   delivery="${work}/delivery"
-  if [ "$no_banner" -eq 0 ] && osm_banner_enabled; then
+  if [ "$no_banner" -eq 0 ] && fusho_banner_enabled; then
     {
-      osm_emit_banner
+      fusho_emit_banner
       printf '\n'
       cat "$armor"
     } >"$delivery"
@@ -141,23 +141,23 @@ osm_send_run() {
     cat "$armor" >"$delivery"
   fi
   if [ "$as_json" -eq 1 ]; then
-    osm_emit_json "$alg" "$tofile" "$selected_fps" "$armor"
+    fusho_emit_json "$alg" "$tofile" "$selected_fps" "$armor"
   elif [ "$want_qr" -eq 1 ]; then
-    osm_emit_qr "$armor"
+    fusho_emit_qr "$armor"
   else
     cat "$delivery"
   fi
   if [ "$no_clipboard" -eq 0 ]; then
-    if copier=$(osm_clipboard_copy "$delivery"); then
-      osm_warn "copied to the clipboard with ${copier}."
-      osm_clipboard_clear_later "$copier" "$delivery" "$OSM_CLIPBOARD_TIMEOUT"
+    if copier=$(fusho_clipboard_copy "$delivery"); then
+      fusho_warn "copied to the clipboard with ${copier}."
+      fusho_clipboard_clear_later "$copier" "$delivery" "$FUSHO_CLIPBOARD_TIMEOUT"
     else
-      osm_warn "no clipboard tool found. copy the block above manually."
+      fusho_warn "no clipboard tool found. copy the block above manually."
     fi
   fi
 }
 
-osm_collect_recipients() {
+fusho_collect_recipients() {
   local targets="$1" keyfiles="$2" supported="$3" tofile="$4" work="$5" accept_new="$6"
   local target keyfile raw one count
   : >"$supported"
@@ -166,30 +166,30 @@ osm_collect_recipients() {
     if [ -z "$target" ]; then continue; fi
     raw="${work}/raw-$(printf '%s' "$target" | tr -c 'a-zA-Z0-9' '_')"
     one="${raw}.supported"
-    osm_fetch_keys "$target" "$raw"
-    osm_supported_keys "$raw" >"$one"
-    osm_require_keys "$target" "$raw" "$one"
-    osm_fingerprints "$one" >"${one}.fps"
-    osm_warn_weak_keys "$one" "$target"
-    osm_trust_check "$target" "${one}.fps" "$accept_new"
+    fusho_fetch_keys "$target" "$raw"
+    fusho_supported_keys "$raw" >"$one"
+    fusho_require_keys "$target" "$raw" "$one"
+    fusho_fingerprints "$one" >"${one}.fps"
+    fusho_warn_weak_keys "$one" "$target"
+    fusho_trust_check "$target" "${one}.fps" "$accept_new"
     cat "$one" >>"$supported"
     printf '%s\n' "$target" >>"$tofile"
   done
   printf '%s' "$keyfiles" | while IFS= read -r keyfile; do
     if [ -z "$keyfile" ]; then continue; fi
-    osm_supported_keys "$keyfile" >>"$supported"
+    fusho_supported_keys "$keyfile" >>"$supported"
     printf '%s\n' "$(basename "$keyfile")" >>"$tofile"
   done
   if [ ! -s "$supported" ]; then
-    osm_die "no usable recipient key was collected."
+    fusho_die "no usable recipient key was collected."
   fi
   count=$(wc -l <"$supported" | tr -d ' ')
   if [ "$count" -eq 0 ]; then
-    osm_die "no usable recipient key was collected."
+    fusho_die "no usable recipient key was collected."
   fi
 }
 
-osm_cmd_read() {
+fusho_cmd_read() {
   local source="" identity_override="" literal=0 from_clipboard=0 require_sig=0 ignore_expiry=0
   local identity_command=""
   while [ $# -gt 0 ]; do
@@ -225,144 +225,144 @@ osm_cmd_read() {
         shift
         continue
         ;;
-      -*) osm_die "unknown option for read: $1" ;;
+      -*) fusho_die "unknown option for read: $1" ;;
       *) ;;
       esac
     fi
     source=$1
     shift
   done
-  osm_read_run "$source" "$identity_override" "$from_clipboard" "$require_sig" "$ignore_expiry" "$identity_command"
+  fusho_read_run "$source" "$identity_override" "$from_clipboard" "$require_sig" "$ignore_expiry" "$identity_command"
 }
 
-osm_read_run() {
+fusho_read_run() {
   local source="$1" identity_override="$2" from_clipboard="$3" require_sig="$4" ignore_expiry="$5"
   local identity_command="$6"
   local work input keys ciphertext alg identity from signature sigfile
-  osm_init_workspace
-  work="$OSM_WORKSPACE"
+  fusho_init_workspace
+  work="$FUSHO_WORKSPACE"
   input="${work}/input"
   keys="${work}/addressed.fps"
   ciphertext="${work}/cipher"
   if [ -n "$source" ]; then
     if [ ! -f "$source" ]; then
-      osm_die "file '${source}' does not exist."
+      fusho_die "file '${source}' does not exist."
     fi
     tr -d '\r' <"$source" >"$input"
   elif [ "$from_clipboard" -eq 1 ] || [ -t 0 ]; then
-    if ! osm_clipboard_paste >"${input}.clipboard" 2>/dev/null; then
-      osm_die "nothing to read. pipe a message in, pass a file, or copy one to the clipboard."
+    if ! fusho_clipboard_paste >"${input}.clipboard" 2>/dev/null; then
+      fusho_die "nothing to read. pipe a message in, pass a file, or copy one to the clipboard."
     fi
     tr -d '\r' <"${input}.clipboard" >"$input"
-    osm_warn "reading the message from the clipboard."
+    fusho_warn "reading the message from the clipboard."
   else
     tr -d '\r' >"$input"
   fi
-  osm_require_armor "$input"
-  osm_armor_field "$input" "key" >"$keys"
+  fusho_require_armor "$input"
+  fusho_armor_field "$input" "key" >"$keys"
   if [ ! -s "$keys" ]; then
-    osm_die "the osm message has no key header, so osm cannot tell which identity to use."
+    fusho_die "the fusho message has no key header, so fusho cannot tell which identity to use."
   fi
-  alg=$(osm_armor_field "$input" "alg" | head -1)
-  if ! osm_armor_body "$input" | tr -d '\n' | openssl base64 -d -A -out "$ciphertext" 2>/dev/null; then
-    osm_die "the message body is not valid base64. the paste may be incomplete."
+  alg=$(fusho_armor_field "$input" "alg" | head -1)
+  if ! fusho_armor_body "$input" | tr -d '\n' | openssl base64 -d -A -out "$ciphertext" 2>/dev/null; then
+    fusho_die "the message body is not valid base64. the paste may be incomplete."
   fi
-  from=$(osm_armor_field "$input" "from" | head -1)
-  signature=$(osm_armor_field "$input" "sig" | head -1)
+  from=$(fusho_armor_field "$input" "from" | head -1)
+  signature=$(fusho_armor_field "$input" "sig" | head -1)
   if [ -n "$from" ] && [ -n "$signature" ]; then
     sigfile="${work}/signature"
     printf '%s' "$signature" | openssl base64 -d -A -out "$sigfile"
-    osm_verify_signature "$from" "$ciphertext" "$sigfile" "$work"
+    fusho_verify_signature "$from" "$ciphertext" "$sigfile" "$work"
   elif [ "$require_sig" -eq 1 ]; then
-    osm_die "this message carries no signature and --require-signature was given."
+    fusho_die "this message carries no signature and --require-signature was given."
   fi
-  osm_check_expiry "$(osm_armor_field "$input" "exp" | head -1)" "$ignore_expiry"
+  fusho_check_expiry "$(fusho_armor_field "$input" "exp" | head -1)" "$ignore_expiry"
   if [ -n "$identity_command" ]; then
     identity="${work}/identity"
     if ! (umask 077 && $identity_command >"$identity"); then
-      osm_die "the identity command failed: ${identity_command}"
+      fusho_die "the identity command failed: ${identity_command}"
     fi
     if [ ! -s "$identity" ]; then
-      osm_die "the identity command produced nothing: ${identity_command}"
+      fusho_die "the identity command produced nothing: ${identity_command}"
     fi
   else
-    identity=$(osm_resolve_identity "$keys" "$identity_override") || exit 1
-    osm_require_passphrase_channel "$identity"
+    identity=$(fusho_resolve_identity "$keys" "$identity_override") || exit 1
+    fusho_require_passphrase_channel "$identity"
   fi
   case "$alg" in
   age)
-    if ! osm_have age; then
-      osm_die "this message needs age to open. install it with: brew install age, or apt install age"
+    if ! fusho_have age; then
+      fusho_die "this message needs age to open. install it with: brew install age, or apt install age"
     fi
-    osm_decrypt_age "$identity" "$ciphertext" >"${work}/plainout"
+    fusho_decrypt_age "$identity" "$ciphertext" >"${work}/plainout"
     ;;
-  rsa-oaep-sha1) osm_decrypt_openssl "$identity" "$ciphertext" >"${work}/plainout" ;;
-  *) osm_die "unknown algorithm '${alg}'. this message may come from a newer osm." ;;
+  rsa-oaep-sha1) fusho_decrypt_openssl "$identity" "$ciphertext" >"${work}/plainout" ;;
+  *) fusho_die "unknown algorithm '${alg}'. this message may come from a newer fusho." ;;
   esac
-  if [ "$(osm_armor_field "$input" "enc" | head -1)" = "gzip" ]; then
-    osm_decompress "${work}/plainout"
+  if [ "$(fusho_armor_field "$input" "enc" | head -1)" = "gzip" ]; then
+    fusho_decompress "${work}/plainout"
   else
     cat "${work}/plainout"
   fi
 }
 
-osm_cmd_keys() {
+fusho_cmd_keys() {
   local user="${1:-}"
   local work raw supported
   if [ -z "$user" ]; then
-    osm_die "usage: osm keys <github-user>"
+    fusho_die "usage: fusho keys <github-user>"
   fi
-  osm_init_workspace
-  work="$OSM_WORKSPACE"
+  fusho_init_workspace
+  work="$FUSHO_WORKSPACE"
   raw="${work}/raw.keys"
   supported="${work}/supported.keys"
-  osm_fetch_keys "$user" "$raw"
-  osm_supported_keys "$raw" >"$supported"
-  osm_require_keys "$user" "$raw" "$supported"
+  fusho_fetch_keys "$user" "$raw"
+  fusho_supported_keys "$raw" >"$supported"
+  fusho_require_keys "$user" "$raw" "$supported"
   ssh-keygen -lf "$supported" | awk '{type=$NF; gsub(/[()]/, "", type); printf "%-10s %s %s bits\n", type, $2, $1}'
 }
 
-osm_doctor_line() {
+fusho_doctor_line() {
   local label="$1" state="$2" remedy="$3"
   printf '%-14s %-8s %s\n' "$label" "$state" "$remedy"
 }
 
-osm_cmd_doctor() {
+fusho_cmd_doctor() {
   local failures=0 flavor
-  if osm_have age; then
-    osm_doctor_line "age" "ok" "$(age --version 2>/dev/null)"
+  if fusho_have age; then
+    fusho_doctor_line "age" "ok" "$(age --version 2>/dev/null)"
   else
-    osm_doctor_line "age" "missing" "install with: brew install age, or apt install age"
+    fusho_doctor_line "age" "missing" "install with: brew install age, or apt install age"
     failures=$((failures + 1))
   fi
-  if osm_have curl; then
-    osm_doctor_line "curl" "ok" ""
+  if fusho_have curl; then
+    fusho_doctor_line "curl" "ok" ""
   else
-    osm_doctor_line "curl" "missing" "curl is required to fetch keys from GitHub"
+    fusho_doctor_line "curl" "missing" "curl is required to fetch keys from GitHub"
     failures=$((failures + 1))
   fi
-  if osm_have ssh-keygen; then
-    osm_doctor_line "ssh-keygen" "ok" ""
+  if fusho_have ssh-keygen; then
+    fusho_doctor_line "ssh-keygen" "ok" ""
   else
-    osm_doctor_line "ssh-keygen" "missing" "install openssh"
+    fusho_doctor_line "ssh-keygen" "missing" "install openssh"
     failures=$((failures + 1))
   fi
-  flavor=$(osm_openssl_flavor)
+  flavor=$(fusho_openssl_flavor)
   case "$flavor" in
-  openssl) osm_doctor_line "openssl" "ok" "OpenSSL" ;;
-  libressl) osm_doctor_line "openssl" "ok" "LibreSSL. the RSA fallback pins OAEP to SHA-1 so it interoperates with OpenSSL" ;;
+  openssl) fusho_doctor_line "openssl" "ok" "OpenSSL" ;;
+  libressl) fusho_doctor_line "openssl" "ok" "LibreSSL. the RSA fallback pins OAEP to SHA-1 so it interoperates with OpenSSL" ;;
   *)
-    osm_doctor_line "openssl" "missing" "install openssl"
+    fusho_doctor_line "openssl" "missing" "install openssl"
     failures=$((failures + 1))
     ;;
   esac
-  osm_doctor_identities
+  fusho_doctor_identities
   if [ "$failures" -gt 0 ]; then
     exit 1
   fi
 }
 
-osm_doctor_identities() {
+fusho_doctor_identities() {
   local pub count=0
   for pub in "$HOME"/.ssh/*.pub; do
     if [ -f "$pub" ] && [ -f "${pub%.pub}" ]; then
@@ -370,31 +370,31 @@ osm_doctor_identities() {
     fi
   done
   if [ "$count" -gt 0 ]; then
-    osm_doctor_line "identities" "ok" "${count} usable key pair(s) under ~/.ssh"
+    fusho_doctor_line "identities" "ok" "${count} usable key pair(s) under ~/.ssh"
   else
-    osm_doctor_line "identities" "warn" "no key pair found under ~/.ssh. you can receive nothing until you add one"
+    fusho_doctor_line "identities" "warn" "no key pair found under ~/.ssh. you can receive nothing until you add one"
   fi
 }
 
-osm_cmd_version() {
+fusho_cmd_version() {
   local engine
-  engine="rsa-oaep-sha1 via $(osm_openssl_flavor)"
-  if osm_have age; then
+  engine="rsa-oaep-sha1 via $(fusho_openssl_flavor)"
+  if fusho_have age; then
     engine="age"
   fi
-  printf 'osm %s\nengine: %s\n' "$OSM_VERSION" "$engine"
+  printf 'fusho %s\nengine: %s\n' "$FUSHO_VERSION" "$engine"
 }
 
-osm_usage() {
+fusho_usage() {
   cat <<'USAGE'
-osm - send encrypted messages through any chat, using GitHub SSH keys
+fusho - send encrypted messages through any chat, using GitHub SSH keys
 
 usage:
-  osm send <user>[@host][:<fingerprint-prefix>] [message]
-  osm read [file]
-  osm keys <user>[@host]
-  osm doctor
-  osm version
+  fusho send <user>[@host][:<fingerprint-prefix>] [message]
+  fusho read [file]
+  fusho keys <user>[@host]
+  fusho doctor
+  fusho version
 
 options:
   --to <target>       add a recipient. repeat for several
@@ -424,12 +424,12 @@ notes:
   machine through the process list. Piping it on stdin avoids that.
 
 examples:
-  osm send alice 'database password: correct-horse'
-  osm send bob@gitlab 'works across forges'
-  osm send --to alice --to bob@codeberg 'one message, two people'
-  osm send --sign you alice 'signed, so alice knows it came from you'
-  printf 'secret' | osm send alice
-  pbpaste | osm read
-  osm read message.txt
+  fusho send alice 'database password: correct-horse'
+  fusho send bob@gitlab 'works across forges'
+  fusho send --to alice --to bob@codeberg 'one message, two people'
+  fusho send --sign you alice 'signed, so alice knows it came from you'
+  printf 'secret' | fusho send alice
+  pbpaste | fusho read
+  fusho read message.txt
 USAGE
 }

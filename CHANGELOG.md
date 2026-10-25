@@ -1,84 +1,84 @@
 # Changelog
 
-# [1.8.0](https://github.com/gufranco/osm/compare/v1.7.0...v1.8.0) (2026-08-12)
+# [1.8.0](https://github.com/gufranco/fusho/compare/v1.7.0...v1.8.0) (2026-08-12)
 
 
 ### Features
 
-* handle keys that live in an ssh agent ([8ac109c](https://github.com/gufranco/osm/commit/8ac109c128b7b650d8eef9d2e856075f2ac4547f))
+* handle keys that live in an ssh agent ([8ac109c](https://github.com/gufranco/fusho/commit/8ac109c128b7b650d8eef9d2e856075f2ac4547f))
 
-# [1.7.0](https://github.com/gufranco/osm/compare/v1.6.0...v1.7.0) (2026-08-12)
+# [1.7.0](https://github.com/gufranco/fusho/compare/v1.6.0...v1.7.0) (2026-08-12)
 
 
 ### Bug Fixes
 
-* bump the formula inside the release job ([5f83a9b](https://github.com/gufranco/osm/commit/5f83a9bdc2e5298e22379bb042a2c6e2bb3d7cdc))
+* bump the formula inside the release job ([5f83a9b](https://github.com/gufranco/fusho/commit/5f83a9bdc2e5298e22379bb042a2c6e2bb3d7cdc))
 
 
 ### Features
 
-* tell a first-time recipient what the block is ([9c5d80c](https://github.com/gufranco/osm/commit/9c5d80ce262798157d79e174c1cc23ece398b844))
+* tell a first-time recipient what the block is ([9c5d80c](https://github.com/gufranco/fusho/commit/9c5d80ce262798157d79e174c1cc23ece398b844))
 
-# [1.6.0](https://github.com/gufranco/osm/compare/v1.5.0...v1.6.0) (2026-08-12)
+# [1.6.0](https://github.com/gufranco/fusho/compare/v1.5.0...v1.6.0) (2026-08-12)
 
 
 ### Features
 
-* make this repo its own homebrew tap ([0b2279f](https://github.com/gufranco/osm/commit/0b2279f8e134e24c2d23f33e3af0eb99099bde91))
+* make this repo its own homebrew tap ([0b2279f](https://github.com/gufranco/fusho/commit/0b2279f8e134e24c2d23f33e3af0eb99099bde91))
 
-# [1.5.0](https://github.com/gufranco/osm/compare/v1.4.0...v1.5.0) (2026-08-12)
+# [1.5.0](https://github.com/gufranco/fusho/compare/v1.4.0...v1.5.0) (2026-08-12)
 
 
 ### Bug Fixes
 
-* probe the terminal without killing the shell ([505a280](https://github.com/gufranco/osm/commit/505a2808cc2d5badeb480153e4a33aed5ced6c11))
+* probe the terminal without killing the shell ([505a280](https://github.com/gufranco/fusho/commit/505a2808cc2d5badeb480153e4a33aed5ced6c11))
 
 
 ### Features
 
-* expiry, clipboard overrides and clearer failures ([e4f0ef9](https://github.com/gufranco/osm/commit/e4f0ef964ec5e4cccd8c2f799363bec717884623))
+* expiry, clipboard overrides and clearer failures ([e4f0ef9](https://github.com/gufranco/fusho/commit/e4f0ef964ec5e4cccd8c2f799363bec717884623))
 
-# [1.4.0](https://github.com/gufranco/osm/compare/v1.3.0...v1.4.0) (2026-08-12)
+# [1.4.0](https://github.com/gufranco/fusho/compare/v1.3.0...v1.4.0) (2026-08-12)
 
 
 ### Bug Fixes
 
-* keep the bash completion working on bash 3.2 ([8957f9c](https://github.com/gufranco/osm/commit/8957f9c8c0a023259b7e0b2681fee6b86bdb9251))
+* keep the bash completion working on bash 3.2 ([8957f9c](https://github.com/gufranco/fusho/commit/8957f9c8c0a023259b7e0b2681fee6b86bdb9251))
 
 
 ### Features
 
-* ship a man page, shell completions and a formula ([a25c297](https://github.com/gufranco/osm/commit/a25c297757a24f4dad9917af135d1b5ebd8f211d))
+* ship a man page, shell completions and a formula ([a25c297](https://github.com/gufranco/fusho/commit/a25c297757a24f4dad9917af135d1b5ebd8f211d))
 
-# [1.3.0](https://github.com/gufranco/osm/compare/v1.2.0...v1.3.0) (2026-08-12)
-
-
-### Features
-
-* compress payloads, flag weak keys, expire the clipboard ([13cab1e](https://github.com/gufranco/osm/commit/13cab1e061a46417693a9ce427d348fe8667a2c2))
-
-# [1.2.0](https://github.com/gufranco/osm/compare/v1.1.0...v1.2.0) (2026-08-12)
+# [1.3.0](https://github.com/gufranco/fusho/compare/v1.2.0...v1.3.0) (2026-08-12)
 
 
 ### Features
 
-* sign messages and pin recipient keys ([d9c6197](https://github.com/gufranco/osm/commit/d9c6197ff3abf669d7e7d6e12482f9bbae5865c9))
+* compress payloads, flag weak keys, expire the clipboard ([13cab1e](https://github.com/gufranco/fusho/commit/13cab1e061a46417693a9ce427d348fe8667a2c2))
 
-# [1.1.0](https://github.com/gufranco/osm/compare/v1.0.0...v1.1.0) (2026-08-12)
+# [1.2.0](https://github.com/gufranco/fusho/compare/v1.1.0...v1.2.0) (2026-08-12)
 
 
 ### Features
 
-* reach recipients beyond GitHub, and several at once ([ff35eec](https://github.com/gufranco/osm/commit/ff35eecbd82683c9b0af0d73392983e959f86344))
+* sign messages and pin recipient keys ([d9c6197](https://github.com/gufranco/fusho/commit/d9c6197ff3abf669d7e7d6e12482f9bbae5865c9))
+
+# [1.1.0](https://github.com/gufranco/fusho/compare/v1.0.0...v1.1.0) (2026-08-12)
+
+
+### Features
+
+* reach recipients beyond GitHub, and several at once ([ff35eec](https://github.com/gufranco/fusho/commit/ff35eecbd82683c9b0af0d73392983e959f86344))
 
 # 1.0.0 (2026-08-12)
 
 
 ### Bug Fixes
 
-* make the artifact run on any POSIX shell ([f39872d](https://github.com/gufranco/osm/commit/f39872d24fb285cc07bdf05ccc15e1ed0cb1deb6))
+* make the artifact run on any POSIX shell ([f39872d](https://github.com/gufranco/fusho/commit/f39872d24fb285cc07bdf05ccc15e1ed0cb1deb6))
 
 
 ### Features
 
-* add osm, encrypted messages over any chat ([1baca30](https://github.com/gufranco/osm/commit/1baca305ff0b30abfafa958f7a57b9d5215cb35c))
+* add fusho, encrypted messages over any chat ([1baca30](https://github.com/gufranco/fusho/commit/1baca305ff0b30abfafa958f7a57b9d5215cb35c))

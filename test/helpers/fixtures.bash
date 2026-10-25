@@ -1,10 +1,10 @@
-OSM_TEST_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OSM_REPO_ROOT="$(cd "${OSM_TEST_ROOT}/.." && pwd)"
-OSM_BIN="${OSM_BIN:-${OSM_REPO_ROOT}/dist/osm}"
+FUSHO_TEST_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+FUSHO_REPO_ROOT="$(cd "${FUSHO_TEST_ROOT}/.." && pwd)"
+FUSHO_BIN="${FUSHO_BIN:-${FUSHO_REPO_ROOT}/dist/fusho}"
 
 fixture_workspace() {
   local dir
-  dir="$(mktemp -d "${TMPDIR:-/tmp}/osm-test-XXXXXX")"
+  dir="$(mktemp -d "${TMPDIR:-/tmp}/fusho-test-XXXXXX")"
   mkdir -p "${dir}/config"
   printf '%s\n' "$dir"
 }
@@ -50,7 +50,7 @@ fixture_publish_empty_account() {
 
 keyserver_start() {
   local served=$1
-  python3 "${OSM_TEST_ROOT}/helpers/keyserver.py" "$served" >"${served}/.port" 2>"${served}/.port.err" &
+  python3 "${FUSHO_TEST_ROOT}/helpers/keyserver.py" "$served" >"${served}/.port" 2>"${served}/.port.err" &
   KEYSERVER_PID=$!
   local waited=0
   while [[ ! -s "${served}/.port" ]]; do
@@ -62,8 +62,8 @@ keyserver_start() {
     fi
   done
   KEYSERVER_PORT="$(cat "${served}/.port")"
-  OSM_GITHUB_BASE="http://127.0.0.1:${KEYSERVER_PORT}"
-  export OSM_GITHUB_BASE
+  FUSHO_GITHUB_BASE="http://127.0.0.1:${KEYSERVER_PORT}"
+  export FUSHO_GITHUB_BASE
 }
 
 keyserver_stop() {
@@ -74,8 +74,8 @@ keyserver_stop() {
   fi
 }
 
-osm() {
-  "$OSM_BIN" "$@"
+fusho() {
+  "$FUSHO_BIN" "$@"
 }
 
 sandbox_path_excluding() {
@@ -94,14 +94,14 @@ sandbox_path_excluding() {
 }
 
 fixture_expected_version() {
-  sed -n 's/^OSM_VERSION="\(.*\)"$/\1/p' "${OSM_REPO_ROOT}/lib/core.sh"
+  sed -n 's/^FUSHO_VERSION="\(.*\)"$/\1/p' "${FUSHO_REPO_ROOT}/lib/core.sh"
 }
 
 fixture_tamper_body() {
   awk '
-    /^-----BEGIN OSM MESSAGE-----$/ { started = 1; print; next }
+    /^-----BEGIN FUSHO MESSAGE-----$/ { started = 1; print; next }
     !started { print; next }
-    /^-----END OSM MESSAGE-----$/ { print; next }
+    /^-----END FUSHO MESSAGE-----$/ { print; next }
     body && !changed && length($0) > 20 {
       sub(/^....../, "AAAAAA")
       changed = 1
@@ -115,9 +115,9 @@ fixture_tamper_body() {
 
 fixture_corrupt_body() {
   awk '
-    /^-----BEGIN OSM MESSAGE-----$/ { started = 1; print; next }
+    /^-----BEGIN FUSHO MESSAGE-----$/ { started = 1; print; next }
     !started { print; next }
-    /^-----END OSM MESSAGE-----$/ { print; next }
+    /^-----END FUSHO MESSAGE-----$/ { print; next }
     body && !changed && length($0) > 20 {
       print "!!!! not valid base64 !!!!"
       changed = 1
