@@ -102,6 +102,7 @@ identities     ok       1 usable key pair(s) under ~/.ssh
 
 | 指令 | 用途 |
 |:--------|:--------|
+| `fusho` | 喺終端機會先問你想做咩，再逐個問需要嘅值。`send`、`read` 同 `keys` 都會問缺少嘅值 |
 | `fusho send <user>[@host] [message]` | 加密給 GitHub、GitLab、Codeberg、SourceHut 或自行架設的程式碼託管平台上的用戶。未提供訊息時讀取標準輸入 |
 | `fusho read [file]` | 解密。有管道輸入時讀取標準輸入，否則讀取剪貼簿 |
 | `fusho keys <user>` | 列出 fusho 可以加密至的金鑰及其指紋 |

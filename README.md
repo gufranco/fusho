@@ -100,6 +100,7 @@ identities     ok       1 usable key pair(s) under ~/.ssh
 
 | Command | Purpose |
 |:--------|:--------|
+| `fusho` | In a terminal, ask what to do and then for each value. `send`, `read` and `keys` also ask for whatever is missing |
 | `fusho send <user>[@host] [message]` | Encrypt to a user on GitHub, GitLab, Codeberg, SourceHut, or a self-hosted forge. Reads stdin when no message is given |
 | `fusho read [file]` | Decrypt. Reads stdin when piped, otherwise the clipboard |
 | `fusho keys <user>` | List the keys fusho can encrypt to, with fingerprints |

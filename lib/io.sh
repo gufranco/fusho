@@ -23,6 +23,9 @@ fusho_read_plaintext() {
   if [ -n "$message" ]; then
     printf '%s\n' "$message" >"$dest"
   else
+    if fusho_interactive; then
+      printf '%s\n' "Type the message, then press Ctrl-D on an empty line:" >&2
+    fi
     cat >"$dest"
   fi
   if [ ! -s "$dest" ]; then
@@ -51,14 +54,16 @@ fusho_clipboard_paste() {
 }
 
 fusho_clipboard_clear_later() {
-  local copier="$1" armor="$2" seconds="$3"
+  local copier="$1" armor="$2" seconds="$3" expected
   if [ "$seconds" -le 0 ]; then
     return 0
   fi
+  expected=$(cat "$armor")
   (
     sleep "$seconds"
-    if fusho_clipboard_paste 2>/dev/null | cmp -s - "$armor"; then
-      printf '' | "$copier" >/dev/null 2>&1 || true
+    if [ "$(fusho_clipboard_paste 2>/dev/null)" = "$expected" ]; then
+      # shellcheck disable=SC2086
+      printf '' | $copier >/dev/null 2>&1 || true
     fi
   ) >/dev/null 2>&1 &
 }
@@ -94,4 +99,40 @@ fusho_emit_qr() {
     fusho_die "the message is too large for a QR code. send it as text instead."
   fi
   qrencode -t ANSIUTF8 <"$armor"
+}
+
+fusho_interactive() {
+  [ "${FUSHO_INTERACTIVE:-}" = 1 ] && return 0
+  [ -t 0 ]
+}
+
+fusho_prompt() {
+  local answer=""
+  printf '%s: ' "$1" >&2
+  IFS= read -r answer || [ -n "$answer" ] || return 1
+  printf '%s\n' "$answer"
+}
+
+fusho_prompt_required() {
+  local tries=0 answer=""
+  while [ "$tries" -lt 3 ]; do
+    answer=$(fusho_prompt "$1") || fusho_die "$2"
+    if [ -n "$answer" ]; then
+      printf '%s\n' "$answer"
+      return 0
+    fi
+    tries=$((tries + 1))
+  done
+  fusho_die "$2"
+}
+
+fusho_has_armor() {
+  local line=""
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+    *"$FUSHO_ARMOR_BEGIN"*) return 0 ;;
+    *) ;;
+    esac
+  done <"$1"
+  return 1
 }

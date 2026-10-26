@@ -102,6 +102,7 @@ identities     ok       1 usable key pair(s) under ~/.ssh
 
 | コマンド | 用途 |
 |:--------|:--------|
+| `fusho` | ターミナルでは、何をするかを尋ね、続けて必要な値を順に尋ねます。`send`、`read`、`keys`も足りない値を尋ねます |
 | `fusho send <user>[@host] [message]` | GitHub、GitLab、Codeberg、SourceHut、セルフホストのフォージのユーザーに暗号化します。メッセージを指定しない場合は標準入力を読みます |
 | `fusho read [file]` | 復号します。パイプされていれば標準入力を、そうでなければクリップボードを読みます |
 | `fusho keys <user>` | fushoが暗号化できる鍵をフィンガープリント付きで一覧表示します |

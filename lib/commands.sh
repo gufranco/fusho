@@ -82,6 +82,11 @@ fusho_cmd_send() {
     targets="${target}
 ${targets}"
   fi
+  if [ -z "$targets" ] && [ -z "$keyfiles" ] && fusho_interactive; then
+    target=$(fusho_prompt_required "Send to, a GitHub user or user@host" "no recipient given. run 'fusho help' for usage.") || exit 1
+    targets="${target}
+"
+  fi
   if [ -z "$targets" ] && [ -z "$keyfiles" ]; then
     fusho_die "usage: fusho send <user>[@host][:<fingerprint-prefix>] [message]"
   fi
@@ -249,12 +254,16 @@ fusho_read_run() {
       fusho_die "file '${source}' does not exist."
     fi
     tr -d '\r' <"$source" >"$input"
-  elif [ "$from_clipboard" -eq 1 ] || [ -t 0 ]; then
-    if ! fusho_clipboard_paste >"${input}.clipboard" 2>/dev/null; then
+  elif [ "$from_clipboard" -eq 1 ] || fusho_interactive; then
+    if fusho_clipboard_paste >"${input}.clipboard" 2>/dev/null && fusho_has_armor "${input}.clipboard"; then
+      tr -d '\r' <"${input}.clipboard" >"$input"
+      fusho_warn "reading the message from the clipboard."
+    elif [ "$from_clipboard" -eq 0 ] && fusho_interactive; then
+      printf '%s\n' "Paste the fusho message, then press Ctrl-D on an empty line:" >&2
+      tr -d '\r' >"$input"
+    else
       fusho_die "nothing to read. pipe a message in, pass a file, or copy one to the clipboard."
     fi
-    tr -d '\r' <"${input}.clipboard" >"$input"
-    fusho_warn "reading the message from the clipboard."
   else
     tr -d '\r' >"$input"
   fi
@@ -309,6 +318,9 @@ fusho_read_run() {
 fusho_cmd_keys() {
   local user="${1:-}"
   local work raw supported
+  if [ -z "$user" ] && fusho_interactive; then
+    user=$(fusho_prompt_required "Whose keys, a GitHub user or user@host" "no user given. run 'fusho help' for usage.") || exit 1
+  fi
   if [ -z "$user" ]; then
     fusho_die "usage: fusho keys <github-user>"
   fi
@@ -390,6 +402,7 @@ fusho_usage() {
 fusho - send encrypted messages through any chat, using GitHub SSH keys
 
 usage:
+  fusho
   fusho send <user>[@host][:<fingerprint-prefix>] [message]
   fusho read [file]
   fusho keys <user>[@host]
@@ -420,6 +433,10 @@ hosts:
   Bitbucket has no public key endpoint, so use --keys-file for it.
 
 notes:
+  Run fusho, send, read or keys in a terminal without the values they need
+  and fusho asks for each one. Every value can still be given on the command
+  line, which is what scripts should do.
+
   Passing the message as an argument makes it visible to other users of this
   machine through the process list. Piping it on stdin avoids that.
 
