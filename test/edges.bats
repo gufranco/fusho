@@ -159,6 +159,9 @@ wait_until_empty() {
 
 @test "says nothing about the agent when it holds none of the message keys" {
   # Arrange
+  if ! command -v ssh-agent >/dev/null 2>&1 || ! command -v ssh-add >/dev/null 2>&1; then
+    skip "this machine has no ssh-agent to hold a key in"
+  fi
   local agent="${WORK}/agent-unrelated"
   mkdir -p "$agent"
   fixture_generate_ed25519 "$agent" "unrelated"
