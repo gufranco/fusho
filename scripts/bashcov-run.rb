@@ -13,6 +13,7 @@ coverage = runner.result
 
 require "simplecov"
 
+SimpleCov.print_error_status = false
 SimpleCov.start
 SimpleCov.command_name(Bashcov.command_name)
 SimpleCov.root(Bashcov.root_directory)
