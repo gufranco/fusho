@@ -61,7 +61,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y age bats
+          sudo apt-get install -y age bats ksh
 
       - name: Install dependencies on macOS
         if: runner.os == 'macOS'
@@ -136,20 +136,23 @@ jobs:
   coverage:
     name: coverage gate
     runs-on: ubuntu-latest
-    container: debian:stable-slim
     steps:
+      - uses: actions/checkout@v7
+
+      - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f  # v1.335.0
+        with:
+          bundler-cache: true
+
       - name: Install dependencies
         run: |
-          apt-get update
-          apt-get install -y age bats kcov python3 openssh-client openssl curl ca-certificates git
-
-      - uses: actions/checkout@v7
+          sudo apt-get update
+          sudo apt-get install -y age bats ksh openssh-client openssl curl python3 qrencode
 
       - name: Build the artifact
         run: bash build.sh
 
       - name: Enforce the coverage gate
-        run: bash scripts/coverage.sh 91
+        run: bash scripts/coverage.sh 100
 
   interop-encrypt:
     name: encrypt on macOS

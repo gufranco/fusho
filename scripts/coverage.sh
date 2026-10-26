@@ -2,48 +2,26 @@
 set -euo pipefail
 
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
-minimum=${1:-95}
-coverage_dir="${root}/coverage"
-runs_dir="${coverage_dir}/runs"
-merged_dir="${coverage_dir}/merged"
+minimum=${1:-100}
 artifact="${root}/dist/fusho"
-
-kcov_bin=$(command -v kcov)
 bash_bin=$(command -v bash)
-hashbang=$(printf '\043\041')
+ruby_bin=$(command -v ruby)
+bashcov_bin="${root}/scripts/bashcov-run.rb"
 
-rm -rf "$coverage_dir"
-mkdir -p "$runs_dir"
+rm -rf "${root}/coverage"
+mkdir -p "${root}/coverage"
 
-wrapper="${coverage_dir}/fusho-instrumented"
+wrapper="${root}/coverage/fusho-instrumented"
 {
-  printf '%s%s\n' "$hashbang" "$bash_bin"
+  printf '#!%s\n' "${bash_bin}"
+  printf 'export BUNDLE_GEMFILE=%q\n' "${root}/Gemfile"
   # shellcheck disable=SC2016
-  printf 'exec %q --include-path=%q "%s/run-$$-${RANDOM}" %q "$@"\n' \
-    "$kcov_bin" "$artifact" "$runs_dir" "$artifact"
-} >"$wrapper"
-chmod 0755 "$wrapper"
+  printf 'exec %q -rbundler/setup %q --root %q --bash-path %q --command-name "run-$$-${RANDOM}" -- %q "$@"\n' \
+    "${ruby_bin}" "${bashcov_bin}" "${root}" "${bash_bin}" "${artifact}"
+} >"${wrapper}"
+chmod 0755 "${wrapper}"
 
-FUSHO_COVERAGE=1 FUSHO_BIN="$wrapper" bats "${root}/test"
+FUSHO_COVERAGE=1 FUSHO_BIN="${wrapper}" bats "${root}/test"
 
-"$kcov_bin" --merge "$merged_dir" "${runs_dir}"/run-* >/dev/null 2>&1
-
-summary=$(find "$merged_dir" -name 'coverage.json' -print -quit)
-if [[ -z "$summary" ]]; then
-  printf 'no coverage.json produced under %s\n' "$merged_dir" >&2
-  exit 1
-fi
-
-python3 - "$summary" "$minimum" <<'PY'
-import json
-import sys
-
-report = json.load(open(sys.argv[1]))
-actual = float(report["percent_covered"])
-minimum = float(sys.argv[2])
-print("covered %s of %s lines (%.2f%%), gate %.2f%%" % (
-    report["covered_lines"], report["total_lines"], actual, minimum))
-if actual + 1e-9 < minimum:
-    sys.stderr.write("coverage %.2f%% is below the %.2f%% gate\n" % (actual, minimum))
-    sys.exit(1)
-PY
+cd "${root}"
+python3 scripts/coverage-gate.py '/dist/fusho\Z' "${minimum}" coverage/.resultset.json
