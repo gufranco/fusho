@@ -157,6 +157,24 @@ wait_until_empty() {
   assert_output_lacks "ssh-agent"
 }
 
+@test "says nothing about the agent when it holds none of the message keys" {
+  # Arrange
+  local agent="${WORK}/agent-unrelated"
+  mkdir -p "$agent"
+  fixture_generate_ed25519 "$agent" "unrelated"
+  eval "$(ssh-agent -a "${agent}/sock" -s)" >/dev/null
+  ssh-add -q "${agent}/unrelated" 2>/dev/null
+  "$FUSHO_BIN" send rsauser 'not for this agent' --no-clipboard >"${WORK}/for-rsa-agent" 2>/dev/null
+
+  # Act
+  run env SSH_AUTH_SOCK="${agent}/sock" "$FUSHO_BIN" read "${WORK}/for-rsa-agent"
+  ssh-agent -k >/dev/null
+
+  # Assert
+  assert_status 1
+  assert_output_lacks "your ssh agent does hold"
+}
+
 @test "leaves the clipboard alone when the clear timeout is zero" {
   # Arrange
   local clip="${WORK}/clip-zero"
