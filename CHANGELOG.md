@@ -1,5 +1,17 @@
 # Changelog
 
+# [2.1.0](https://github.com/gufranco/fusho/compare/v2.0.0...v2.1.0) (2026-10-26)
+
+
+### Bug Fixes
+
+* **core:** report a shell without local under set -u ([d713dc1](https://github.com/gufranco/fusho/commit/d713dc1c9cc65df4602b2e613508588ba79ba111))
+
+
+### Features
+
+* **cli:** ask for missing values in a terminal ([8f234e9](https://github.com/gufranco/fusho/commit/8f234e9751044141efc560dd2aa7a95442c88951))
+
 # [2.0.0](https://github.com/gufranco/fusho/compare/v1.8.0...v2.0.0) (2026-10-25)
 
 
