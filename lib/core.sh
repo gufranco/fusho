@@ -57,7 +57,7 @@ fusho_openssl_flavor() {
 
 fusho_probe_local() {
   local probe="ok"
-  [ "$probe" = "ok" ]
+  [ "${probe:-}" = "ok" ]
 }
 
 fusho_require_local() {
