@@ -364,6 +364,42 @@ fusho_doctor_line() {
   printf '%-18s %-8s %s\n' "$label" "$state" "$detail"
 }
 
+fusho_flavor_version() {
+  printf '%s\n' "$1" | awk '{
+    for (i = 1; i <= NF; i++) {
+      t = $i
+      gsub(/[,;()]/, "", t)
+      sub(/^v/, "", t)
+      if (t ~ /^[0-9]+(\.[0-9]+)+[a-z0-9]*$/ || t ~ /^[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]$/) { print t; exit }
+    }
+  }'
+}
+
+fusho_tool_flavor() {
+  local raw text version name os
+  raw=$("$1" --version 2>&1 </dev/null) || true
+  text=$(printf '%s\n' "$raw" | sed -n '1p')
+  version=$(fusho_flavor_version "$text")
+  os=${FUSHO_OS:-}
+  [ -n "$os" ] || os=$(uname -s)
+  case "$text" in
+  *uutils*) name=uutils ;;
+  *BusyBox*) name=busybox ;;
+  *GNU* | *GLIBC* | *"(coreutils)"* | *"(diffutils)"*) name=gnu ;;
+  *mawk*) name=mawk ;;
+  *"awk version"* | *"(Darwin)"*) name=bsd ;;
+  *)
+    version=""
+    case "$1:$os" in
+    *uutils*:* | */cargo/*:*) name=uutils ;;
+    *:Darwin | *:*BSD) name=bsd ;;
+    *) name=unknown ;;
+    esac
+    ;;
+  esac
+  printf '%s%s\n' "$name" "${version:+ $version}"
+}
+
 fusho_doctor_tool() {
   local name="$1" remedy="$2" note="${3:-}" found
   found=$(command -v "$name" 2>/dev/null || true)
@@ -376,13 +412,20 @@ fusho_doctor_tool() {
 }
 
 fusho_cmd_doctor() {
-  local failures=0 flavor note=""
+  local failures=0 flavor note="" tool
   if fusho_have age; then
     note=$(age --version 2>/dev/null || true)
   fi
   fusho_doctor_tool age "install with: brew install age, or apt install age" "$note" || failures=$((failures + 1))
   fusho_doctor_tool curl "curl is required to fetch keys from GitHub" || failures=$((failures + 1))
   fusho_doctor_tool ssh-keygen "install openssh" || failures=$((failures + 1))
+  for tool in awk sed tr date; do
+    note=""
+    if fusho_have "$tool"; then
+      note=$(fusho_tool_flavor "$(command -v "$tool")")
+    fi
+    fusho_doctor_tool "$tool" "required" "$note" || failures=$((failures + 1))
+  done
   flavor=$(fusho_openssl_flavor)
   case "$flavor" in
   openssl) note="OpenSSL" ;;
