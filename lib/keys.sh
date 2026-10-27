@@ -118,7 +118,7 @@ fusho_warn_weak_keys() {
     bits=$(printf '%s' "$line" | awk '{print $1}')
     type=$(printf '%s' "$line" | awk '{type=$NF; gsub(/[()]/, "", type); print type}')
     if [ "$type" = "RSA" ] && [ "$bits" -lt "$FUSHO_MIN_RSA_BITS" ]; then
-      fusho_warn "'${target}' publishes a ${bits}-bit RSA key, below the ${FUSHO_MIN_RSA_BITS}-bit floor. ask them to rotate to ed25519."
+      fusho_warn "warning: '${target}' publishes a ${bits}-bit RSA key, below the ${FUSHO_MIN_RSA_BITS}-bit floor. ask them to rotate to ed25519."
     fi
   done
 }

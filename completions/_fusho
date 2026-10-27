@@ -3,11 +3,11 @@
 _fusho() {
   local -a commands
   commands=(
-    'send:encrypt a message to a user'
+    'send:encrypt a message to one or more people'
     'read:decrypt a message'
-    'keys:list the keys a user publishes'
-    'doctor:check the local environment'
-    'version:print the version and engine'
+    'keys:list the keys someone publishes'
+    'doctor:check the tools fusho needs'
+    'version:print the version and the encryption engine'
     'help:print usage'
   )
 
@@ -21,18 +21,22 @@ _fusho() {
       _arguments \
         '*--to[add a recipient]:target:' \
         '*--keys-file[add recipients from a public key file]:file:_files' \
-        '--key[pin one key by fingerprint prefix]:prefix:' \
-        '--sign[sign as a user you hold a key for]:user:' \
+        '--key[encrypt to one key, chosen by fingerprint prefix]:prefix:' \
         '--json[print machine readable output]' \
+        '--sign[sign as a user whose published key you hold]:user:' \
+        '--accept-new-key[accept a recipient whose pinned keys changed]' \
         '--qr[print the message as a QR code]' \
-        '--accept-new-key[accept changed recipient keys]' \
-        '--no-clipboard[do not copy to the clipboard]'
+        '--expires[mark the message stale after a duration]:duration:' \
+        '--no-banner[omit the note telling the recipient what this is]' \
+        '--no-clipboard[do not copy the result to the clipboard]'
       ;;
     read)
       _arguments \
         '--identity[decrypt with a specific private key]:file:_files' \
+        '--identity-command[read the private key from a command]:command:' \
         '--clipboard[read the message from the clipboard]' \
-        '--require-signature[refuse an unsigned message]' \
+        '--require-signature[refuse a message that carries no signature]' \
+        '--ignore-expiry[open a message the sender marked as expired]' \
         '*:file:_files'
       ;;
   esac

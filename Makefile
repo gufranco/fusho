@@ -3,9 +3,9 @@ ARTIFACT := dist/fusho
 SOURCES := lib build.sh install.sh scripts/coverage.sh scripts/set-version.sh
 TESTS := test
 COVERAGE_DIR := coverage
-COVERAGE_MIN := 91
+COVERAGE_MIN := 100
 
-.PHONY: help build fmt fmt-check lint test cover check clean install
+.PHONY: help build fmt fmt-check lint test coverage check clean install
 
 help:
 	@echo "targets:"
@@ -14,9 +14,9 @@ help:
 	@echo "  fmt-check  fail when formatting is not applied"
 	@echo "  lint       shellcheck at zero warnings"
 	@echo "  test       build, then run the bats suite"
-	@echo "  cover      run the suite under kcov and enforce $(COVERAGE_MIN)% coverage"
-	@echo "  check      fmt-check, lint, test, cover"
-	@echo "  install    copy $(ARTIFACT) into a directory on PATH"
+	@echo "  coverage   bashcov line coverage with a $(COVERAGE_MIN)% gate"
+	@echo "  check      fmt-check, lint, test, coverage"
+	@echo "  install    install $(ARTIFACT), the man page and the completions"
 
 build:
 	@bash build.sh
@@ -36,10 +36,10 @@ lint: build
 test: build
 	bats --print-output-on-failure $(TESTS)
 
-cover: build
+coverage: build
 	@bash scripts/coverage.sh $(COVERAGE_MIN)
 
-check: fmt-check lint test cover
+check: fmt-check lint test coverage
 
 clean:
 	rm -rf $(COVERAGE_DIR) dist $(TESTS)/tmp

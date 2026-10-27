@@ -123,13 +123,6 @@ setup() {
   assert_output_contains "does not exist"
 }
 
-@test "rejects an unknown option" {
-  run "$FUSHO_BIN" read --bogus
-
-  assert_status 1
-  assert_output_contains "unknown option for read"
-}
-
 @test "recognises a key held only by the ssh agent" {
   if ! command -v ssh-agent >/dev/null 2>&1 || ! command -v ssh-add >/dev/null 2>&1; then
     skip "this machine has no ssh-agent to hold a key in"

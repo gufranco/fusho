@@ -68,6 +68,19 @@ setup() {
   assert_output_contains "SHA-1"
 }
 
+@test "doctor lists an unrecognised openssl build without naming a flavour" {
+  # Arrange
+  local search_path="$ODD"
+
+  # Act
+  run env PATH="$search_path" HOME="${WORK}/home" "$FUSHO_BIN" doctor
+
+  # Assert
+  assert_status 0
+  assert_output_contains "${ODD}/openssl"
+  assert_output_lacks "OpenSSL"
+}
+
 @test "version tolerates an unrecognised openssl build" {
   run env PATH="$ODD" HOME="${WORK}/home" "$FUSHO_BIN" version
 

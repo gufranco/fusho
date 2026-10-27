@@ -21,7 +21,7 @@
 
 </div>
 
-五个命令，161 个测试，一个 POSIX `sh` 文件，运行时只依赖 `age`。
+五个命令，195 个测试，一个 POSIX `sh` 文件，运行时只依赖 `age`。
 
 > [!NOTE]
 > **威胁模型。** fusho 让秘密不留在聊天记录里：保留策略、没人记得配置过的备份、2031 年接手这个频道的同事，都看不到它。它防不了键盘记录器、国家级对手，也防不了那位为了以防万一、把明文贴在加密块正下方的同事。这些情况写在[它做不到的事](#what-it-does-not-do)里，而且大多需要大得多的预算。
@@ -31,7 +31,7 @@
 ---
 
 ```console
-$ fusho send alice 'database password: correct-horse-battery-staple'
+$ fusho send --no-banner alice 'database password: correct-horse-battery-staple'
 -----BEGIN FUSHO MESSAGE-----
 v: 1
 alg: age
@@ -91,11 +91,11 @@ make install
 
 ```console
 $ fusho doctor
-age            ok       v1.3.1
-curl           ok
-ssh-keygen     ok
-openssl        ok       OpenSSL
-identities     ok       1 usable key pair(s) under ~/.ssh
+age                ok       /opt/homebrew/bin/age, v1.3.2
+curl               ok       /usr/bin/curl
+ssh-keygen         ok       /usr/bin/ssh-keygen
+openssl            ok       /opt/homebrew/bin/openssl, OpenSSL
+identities         ok       1 usable key pair(s) under ~/.ssh
 ```
 
 ## 用法
@@ -107,7 +107,7 @@ identities     ok       1 usable key pair(s) under ~/.ssh
 | `fusho read [file]` | 解密。有管道输入时读取标准输入，否则读取剪贴板 |
 | `fusho keys <user>` | 列出 fusho 可以加密到的公钥及其指纹 |
 | `fusho doctor` | 检查本地环境，并为每个失败项给出解决办法 |
-| `fusho version` | 显示版本和当前使用的引擎 |
+| `fusho version`、`fusho help` | 显示版本和当前使用的引擎，或完整用法 |
 
 | 选项 | 作用 |
 |:-----|:-------|
@@ -133,6 +133,8 @@ fusho send bob@gitlab 'works across forges'     # gitlab, codeberg, sourcehut, s
 fusho send --to alice --to bob@codeberg 'hi'    # one message, several people
 fusho read                                      # with nothing piped, reads the clipboard
 ```
+
+也可以写成 `--to=alice`，`--` 表示选项结束。fusho 遵循同系列工具共用的命令行约定，详见 [FAMILY.md](FAMILY.md)。
 
 > [!TIP]
 > 请通过标准输入传入秘密，而不是作为参数。机器上的每个用户都能在进程列表中看到参数。
@@ -295,6 +297,14 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
 | 消息过期 | `--expires 6h` 会记录截止时间，由 `fusho read` 执行。它只是提示：能被解密的消息无法撤回 |
 | 二维码输出 | 安装了 `qrencode` 时，`--qr` 会把消息渲染出来，便于从手机传到电脑 |
 
+## 版本管理
+
+fusho 遵循[语义化版本](https://semver.org/)。每个版本都有标签，并连同变更记录发布在[版本页面](https://github.com/gufranco/fusho/releases)。
+
+## 替代方案
+
+[`ssh-vault`](https://github.com/ssh-vault/ssh-vault) 以编译好的二进制解决同样的问题，适合不想运行 shell 脚本的人。另外还有一个把这项功能加入 `gh` 的[公开请求](https://github.com/cli/cli/issues/12202)。
+
 <a id="portability"></a>
 
 ## 可移植性
@@ -322,13 +332,12 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
 |:--------|:------------|
 | `make check` | 格式检查、lint、测试和覆盖率门槛 |
 | `make build` | 把 [`lib/`](lib) 拼接成 `dist/fusho` |
-| `make test` | 161 个 `bats` 测试 |
-| `make cover` | `kcov`，门槛为 91% |
+| `make test` | 195 个 `bats` 测试 |
+| `make coverage` | bashcov 行覆盖率，门槛为 100% |
 | `make install` | 安装主程序、man 手册和补全 |
 
-[`lib/`](lib) 中的 10 个模块由 [`build.sh`](build.sh) 拼接成一个 1147 行的文件，安装的内容可以一次读完。测试使用生成的密钥运行真实的 `age` 和 `openssl`，[`test/helpers/keyserver.py`](test/helpers/keyserver.py) 在本地提供公钥接口，所以 `curl` 看到的是真实的 HTTP 状态码。
+[`lib/`](lib) 中的 10 个模块由 [`build.sh`](build.sh) 拼接成一个 1249 行的文件，安装的内容可以一次读完。测试使用生成的密钥运行真实的 `age` 和 `openssl`，[`test/helpers/keyserver.py`](test/helpers/keyserver.py) 在本地提供公钥接口，所以 `curl` 看到的是真实的 HTTP 状态码。
 
-kcov 无法跟踪后台子 shell、用 `PATH` 隔离的子进程和二进制流，因此剪贴板读取和部分引擎失败的路径虽然经过测试，却不会计入。门槛按 kcov 能观测到的部分设定。
 
 | 约定 | 来源 |
 |:-----------|:-------|
@@ -338,14 +347,6 @@ kcov 无法跟踪后台子 shell、用 `PATH` 隔离的子进程和二进制流�
 | Bash 最低版本 | 3.2，以支持 macOS 的 `/bin/bash` |
 
 CI 在 Ubuntu 以及 Apple Silicon 和 Intel 的 macOS Tahoe 上运行测试，并在 macOS 自带的 Bash 3.2、容器中的所有 POSIX shell，以及移除了 `bash` 的 Alpine 上再次运行。它还会在 macOS 运行器上加密、在 Linux 运行器上解密，并比对校验和。
-
-## 版本管理
-
-fusho 遵循[语义化版本](https://semver.org/)。每个版本都有标签，并连同变更记录发布在[版本页面](https://github.com/gufranco/fusho/releases)。
-
-## 替代方案
-
-[`ssh-vault`](https://github.com/ssh-vault/ssh-vault) 以编译好的二进制解决同样的问题，适合不想运行 shell 脚本的人。另外还有一个把这项功能加入 `gh` 的[公开请求](https://github.com/cli/cli/issues/12202)。
 
 ## 许可证
 

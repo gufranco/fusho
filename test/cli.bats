@@ -48,11 +48,40 @@ setup() {
   assert_output_contains "fusho read [file]"
 }
 
-@test "no arguments prints usage and fails" {
-  run "$FUSHO_BIN"
+@test "no arguments without a terminal fails with a usage hint" {
+  # Arrange
+  local program="$FUSHO_BIN"
 
+  # Act
+  run "$program" </dev/null
+
+  # Assert
   assert_status 1
-  assert_output_contains "usage:"
+  assert_equal "$output" "fusho: no command given. run 'fusho help' for usage."
+}
+
+@test "-V prints the version like version does" {
+  # Arrange
+  local flag=-V
+
+  # Act
+  run "$FUSHO_BIN" "$flag"
+
+  # Assert
+  assert_status 0
+  assert_output_contains "fusho $(fixture_expected_version)"
+}
+
+@test "an unknown top-level option is reported as an option" {
+  # Arrange
+  local option=--frobnicate
+
+  # Act
+  run "$FUSHO_BIN" "$option"
+
+  # Assert
+  assert_status 1
+  assert_equal "$output" "fusho: unknown option '--frobnicate'. run 'fusho help' for usage."
 }
 
 @test "an unknown command is reported" {
@@ -62,25 +91,89 @@ setup() {
   assert_output_contains "unknown command 'frobnicate'"
 }
 
-@test "send without a recipient reports usage" {
-  run "$FUSHO_BIN" send
+@test "send without a recipient and no terminal fails with a usage hint" {
+  # Arrange
+  local command=send
 
+  # Act
+  run "$FUSHO_BIN" "$command" </dev/null
+
+  # Assert
   assert_status 1
-  assert_output_contains "usage: fusho send"
+  assert_equal "$output" "fusho: no recipient given. run 'fusho help' for usage."
+}
+
+@test "send names an option that is missing its value" {
+  # Arrange
+  local option=--to
+
+  # Act
+  run "$FUSHO_BIN" send "$option" </dev/null
+
+  # Assert
+  assert_status 1
+  assert_equal "$output" "fusho: option '--to' needs a value. run 'fusho help' for usage."
+}
+
+@test "send accepts an option written as name=value" {
+  # Arrange
+  local payload
+  payload="$(openssl rand -hex 8)"
+
+  # Act
+  run bash -c "printf '%s\n' '$payload' | '$FUSHO_BIN' send --to=alice --no-clipboard"
+
+  # Assert
+  assert_status 0
+  assert_output_contains "-----BEGIN FUSHO MESSAGE-----"
+}
+
+@test "read splits an option written as name=value" {
+  # Arrange
+  local missing="${WORK}/no-such-message"
+
+  # Act
+  run "$FUSHO_BIN" read --identity="${WORK}/no-such-key" "$missing"
+
+  # Assert
+  assert_status 1
+  assert_equal "$output" "fusho: file '${missing}' does not exist."
 }
 
 @test "send rejects an unknown option" {
-  run "$FUSHO_BIN" send alice --bogus
+  # Arrange
+  local option=--bogus
 
+  # Act
+  run "$FUSHO_BIN" send alice "$option"
+
+  # Assert
   assert_status 1
-  assert_output_contains "unknown option for send"
+  assert_equal "$output" "fusho: unknown option '--bogus'. run 'fusho help' for usage."
 }
 
-@test "keys without a recipient reports usage" {
-  run "$FUSHO_BIN" keys
+@test "read rejects an unknown option" {
+  # Arrange
+  local option=--bogus
 
+  # Act
+  run "$FUSHO_BIN" read "$option"
+
+  # Assert
   assert_status 1
-  assert_output_contains "usage: fusho keys"
+  assert_equal "$output" "fusho: unknown option '--bogus'. run 'fusho help' for usage."
+}
+
+@test "keys without a user and no terminal fails with a usage hint" {
+  # Arrange
+  local command=keys
+
+  # Act
+  run "$FUSHO_BIN" "$command" </dev/null
+
+  # Assert
+  assert_status 1
+  assert_equal "$output" "fusho: no user given. run 'fusho help' for usage."
 }
 
 @test "doctor passes when every dependency is present" {
@@ -220,4 +313,36 @@ run_read_on_tty() {
   assert_output_contains "--require-signature"
   assert_output_contains "--qr"
   assert_output_contains "--keys-file"
+}
+
+help_options() {
+  "$FUSHO_BIN" help | awk '/^  --/ { for (i = 1; i <= NF; i++) if (match($i, /^--[a-z0-9][a-z0-9-]*/)) print substr($i, RSTART, RLENGTH) }' | sort -u
+}
+
+option_drift() {
+  local root="$FUSHO_REPO_ROOT" option name man_form missing=""
+  for option in $(help_options); do
+    name="${option#--}"
+    man_form="\\-\\-${name//-/\\-}"
+    grep -qF -- "$man_form" "${root}/man/fusho.1" || missing="${missing} man:${option}"
+    grep -qE -- "(^|[ \"])${option}( |\"|$)" "${root}/completions/fusho.bash" || missing="${missing} bash:${option}"
+    grep -qE -- "'\\*?${option}\\[" "${root}/completions/_fusho" || missing="${missing} zsh:${option}"
+    grep -qE -- "-l ${name} " "${root}/completions/fusho.fish" || missing="${missing} fish:${option}"
+  done
+  while IFS= read -r option; do
+    help_options | grep -qx -- "$option" || missing="${missing} help:${option}"
+  done < <(grep -oE -- "--[a-z0-9][a-z0-9-]*" "${root}/completions/fusho.bash" | sort -u)
+  printf '%s' "$missing"
+}
+
+@test "the help page, man page and completions list the same options" {
+  # Arrange
+  local expected=""
+
+  # Act
+  run option_drift
+
+  # Assert
+  assert_status 0
+  assert_equal "$output" "$expected"
 }

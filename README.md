@@ -21,7 +21,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-Five commands, 161 tests, one POSIX `sh` file, and no runtime dependency beyond `age`.
+Five commands, 195 tests, one POSIX `sh` file, and no runtime dependency beyond `age`.
 
 > [!NOTE]
 > **Threat model.** fusho keeps a secret out of chat history: the retention policy, the backup nobody remembers configuring, the colleague who inherits the channel in 2031. It does not protect against a keylogger, a nation-state, or the coworker who pastes the plaintext right under the encrypted block "just in case". Those are covered in [what it does not do](#what-it-does-not-do), and mostly by a much larger budget.
@@ -31,7 +31,7 @@ Five commands, 161 tests, one POSIX `sh` file, and no runtime dependency beyond 
 ---
 
 ```console
-$ fusho send alice 'database password: correct-horse-battery-staple'
+$ fusho send --no-banner alice 'database password: correct-horse-battery-staple'
 -----BEGIN FUSHO MESSAGE-----
 v: 1
 alg: age
@@ -89,11 +89,11 @@ Every [release](https://github.com/gufranco/fusho/releases) also attaches a read
 
 ```console
 $ fusho doctor
-age            ok       v1.3.1
-curl           ok
-ssh-keygen     ok
-openssl        ok       OpenSSL
-identities     ok       1 usable key pair(s) under ~/.ssh
+age                ok       /opt/homebrew/bin/age, v1.3.2
+curl               ok       /usr/bin/curl
+ssh-keygen         ok       /usr/bin/ssh-keygen
+openssl            ok       /opt/homebrew/bin/openssl, OpenSSL
+identities         ok       1 usable key pair(s) under ~/.ssh
 ```
 
 ## Usage
@@ -105,7 +105,7 @@ identities     ok       1 usable key pair(s) under ~/.ssh
 | `fusho read [file]` | Decrypt. Reads stdin when piped, otherwise the clipboard |
 | `fusho keys <user>` | List the keys fusho can encrypt to, with fingerprints |
 | `fusho doctor` | Check the local environment and print a remedy for each failure |
-| `fusho version` | Print the version and the active engine |
+| `fusho version`, `fusho help` | Print the version and the active engine, or the full usage |
 
 | Flag | Effect |
 |:-----|:-------|
@@ -131,6 +131,8 @@ fusho send bob@gitlab 'works across forges'     # gitlab, codeberg, sourcehut, s
 fusho send --to alice --to bob@codeberg 'hi'    # one message, several people
 fusho read                                      # with nothing piped, reads the clipboard
 ```
+
+`--to=alice` works too, and `--` ends the options. fusho follows the shared command-line contract of its family, described in [FAMILY.md](FAMILY.md).
 
 > [!TIP]
 > Pipe the secret on stdin instead of passing it as an argument. Every user on the machine can see an argument in the process list.
@@ -287,6 +289,14 @@ Messages that begin with `BEGIN OSM MESSAGE` still open, signatures made under t
 | Message expiry | `--expires 6h` records a deadline that `fusho read` enforces. It is advisory: a message someone can decrypt cannot be un-sent |
 | QR output | `--qr` renders the message for phone-to-laptop transfer, when `qrencode` is installed |
 
+## Versioning
+
+fusho follows [Semantic Versioning](https://semver.org/). Every release is tagged and published on the [releases page](https://github.com/gufranco/fusho/releases) with its changelog.
+
+## Alternatives
+
+[`ssh-vault`](https://github.com/ssh-vault/ssh-vault) solves the same problem as a compiled binary, if you would rather not run a shell script. There is also an [open request](https://github.com/cli/cli/issues/12202) to build this into `gh`.
+
 ## Portability
 
 The shipped artifact is POSIX `sh`. Each row below passed a full encrypt-and-decrypt round trip.
@@ -310,13 +320,12 @@ The shipped artifact is POSIX `sh`. Each row below passed a full encrypt-and-dec
 |:--------|:------------|
 | `make check` | Format, lint, test, and the coverage gate |
 | `make build` | Concatenate [`lib/`](lib) into `dist/fusho` |
-| `make test` | The 161 `bats` tests |
-| `make cover` | `kcov`, gated at 91% |
+| `make test` | The 195 `bats` tests |
+| `make coverage` | bashcov line coverage, gated at 100% |
 | `make install` | Copy the artifact, man page and completions into place |
 
-The 10 modules in [`lib/`](lib) are concatenated by [`build.sh`](build.sh) into one 1147-line file, so what people install can be read in one pass. Tests run against real `age` and `openssl` with generated keys, and [`test/helpers/keyserver.py`](test/helpers/keyserver.py) serves the key endpoint locally, so `curl` sees real HTTP status codes.
+The 10 modules in [`lib/`](lib) are concatenated by [`build.sh`](build.sh) into one 1249-line file, so what people install can be read in one pass. Tests run against real `age` and `openssl` with generated keys, and [`test/helpers/keyserver.py`](test/helpers/keyserver.py) serves the key endpoint locally, so `curl` sees real HTTP status codes.
 
-kcov cannot follow background subshells, `PATH`-sandboxed children, or binary streams, so the clipboard readers and some engine-failure paths are tested without being counted. The gate is set to what kcov can observe.
 
 | Convention | Source |
 |:-----------|:-------|
@@ -326,14 +335,6 @@ kcov cannot follow background subshells, `PATH`-sandboxed children, or binary st
 | Bash floor | 3.2, so macOS `/bin/bash` is a supported target |
 
 CI runs the suite on Ubuntu and on macOS Tahoe for Apple Silicon and Intel, again under macOS system Bash 3.2, across every POSIX shell in a container, and on Alpine with `bash` uninstalled. It also encrypts on a macOS runner and decrypts on a Linux runner, comparing checksums.
-
-## Versioning
-
-fusho follows [Semantic Versioning](https://semver.org/). Every release is tagged and published on the [releases page](https://github.com/gufranco/fusho/releases) with its changelog.
-
-## Alternatives
-
-[`ssh-vault`](https://github.com/ssh-vault/ssh-vault) solves the same problem as a compiled binary, if you would rather not run a shell script. There is also an [open request](https://github.com/cli/cli/issues/12202) to build this into `gh`.
 
 ## License
 

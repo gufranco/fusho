@@ -1,4 +1,4 @@
-.TH FUSHO 1 "2026-08-12" "fusho" "User Commands"
+.TH FUSHO 1 "2026-10-27" "fusho" "User Commands"
 .SH NAME
 fusho \- send encrypted messages through any chat, using published SSH keys
 .SH SYNOPSIS
@@ -14,6 +14,8 @@ fusho \- send encrypted messages through any chat, using published SSH keys
 .B fusho doctor
 .br
 .B fusho version
+.br
+.B fusho help
 .SH DESCRIPTION
 .B fusho
 encrypts a short secret to a recipient identified by their account on a code
@@ -38,6 +40,13 @@ List the keys fusho can encrypt to for an account, with fingerprints.
 .TP
 .B doctor
 Report the state of every dependency and print a remedy for each failure.
+Exits non-zero only when a required tool is missing.
+.TP
+.B version
+Print the version and the encryption engine in use.
+.TP
+.B help
+Print the usage page.
 .SH OPTIONS
 .TP
 .BI \-\-to " target"
@@ -61,17 +70,35 @@ Print machine readable output.
 .B \-\-qr
 Print the message as a QR code instead of text.
 .TP
+.BI \-\-expires " when"
+Mark the message stale after a duration such as 30m, 6h or 7d.
+.TP
+.B \-\-no\-banner
+Omit the short note telling the recipient what the message is.
+.TP
 .B \-\-no\-clipboard
 Do not copy the result to the clipboard.
 .TP
 .BI \-\-identity " path"
 Decrypt with a specific private key.
 .TP
+.BI \-\-identity\-command " cmd"
+Read the private key from a command, for a key kept in a secret manager.
+.TP
 .B \-\-clipboard
 Read the message from the clipboard.
 .TP
 .B \-\-require\-signature
 Refuse a message that carries no signature.
+.TP
+.B \-\-ignore\-expiry
+Open a message the sender marked as expired.
+.PP
+Every option also takes the form
+.IR \-\-name = value ,
+and
+.B \-\-
+ends the options.
 .SH HOSTS
 .B github
 is the default.

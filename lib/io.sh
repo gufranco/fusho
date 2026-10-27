@@ -93,7 +93,7 @@ fusho_decompress() {
 fusho_emit_qr() {
   local armor="$1"
   if ! fusho_have qrencode; then
-    fusho_die "--qr needs qrencode. install it with: brew install qrencode, or apt install qrencode"
+    fusho_die "--qr needs qrencode. install it with: brew install qrencode, or apt install qrencode."
   fi
   if [ "$(wc -c <"$armor" | tr -d " ")" -gt 2900 ]; then
     fusho_die "the message is too large for a QR code. send it as text instead."

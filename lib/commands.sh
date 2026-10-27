@@ -1,21 +1,30 @@
 fusho_cmd_send() {
   local prefix="" message="" no_clipboard=0 target="" literal=0
-  local targets="" keyfiles="" as_json=0 sign_as="" accept_new=0 want_qr=0 expires="" no_banner=0
+  local targets="" keyfiles="" as_json=0 sign_as="" accept_new=0 want_qr=0 expires="" no_banner=0 split=""
   while [ $# -gt 0 ]; do
     if [ "$literal" -eq 0 ]; then
       case "$1" in
+      --*=*)
+        split=$1
+        shift
+        set -- "${split%%=*}" "${split#*=}" "$@"
+        continue
+        ;;
       --key)
+        fusho_need_value "$1" "$#"
         prefix=${2:-}
         shift 2
         continue
         ;;
       --to)
+        fusho_need_value "$1" "$#"
         targets="${targets}${2:-}
 "
         shift 2
         continue
         ;;
       --keys-file)
+        fusho_need_value "$1" "$#"
         if [ ! -f "${2:-}" ]; then
           fusho_die "key file '${2:-}' does not exist."
         fi
@@ -30,6 +39,7 @@ fusho_cmd_send() {
         continue
         ;;
       --sign)
+        fusho_need_value "$1" "$#"
         sign_as=${2:-}
         shift 2
         continue
@@ -50,6 +60,7 @@ fusho_cmd_send() {
         continue
         ;;
       --expires)
+        fusho_need_value "$1" "$#"
         expires=$(fusho_expiry_stamp "${2:-}") || exit 1
         shift 2
         continue
@@ -64,7 +75,7 @@ fusho_cmd_send() {
         shift
         continue
         ;;
-      -*) fusho_die "unknown option for send: $1" ;;
+      -*) fusho_die "unknown option '$1'. run 'fusho help' for usage." ;;
       *) ;;
       esac
     fi
@@ -88,9 +99,15 @@ ${targets}"
 "
   fi
   if [ -z "$targets" ] && [ -z "$keyfiles" ]; then
-    fusho_die "usage: fusho send <user>[@host][:<fingerprint-prefix>] [message]"
+    fusho_die "no recipient given. run 'fusho help' for usage."
   fi
   fusho_send_run "$targets" "$keyfiles" "$prefix" "$message" "$no_clipboard" "$as_json" "$sign_as" "$accept_new" "$want_qr" "$expires" "$no_banner"
+}
+
+fusho_need_value() {
+  if [ "$2" -lt 2 ]; then
+    fusho_die "option '$1' needs a value. run 'fusho help' for usage."
+  fi
 }
 
 fusho_send_run() {
@@ -125,7 +142,7 @@ fusho_send_run() {
     fusho_encrypt_age "$selected" "$plaintext" "$ciphertext"
   else
     alg="rsa-oaep-sha1"
-    fusho_warn "age is not installed. falling back to RSA, which is size limited and provides no integrity check."
+    fusho_warn "warning: age is not installed. falling back to RSA, which is size limited and provides no integrity check."
     fusho_encrypt_openssl "$selected" "$plaintext" "$ciphertext" "$work"
   fi
   if [ -n "$sign_as" ]; then
@@ -196,16 +213,24 @@ fusho_collect_recipients() {
 
 fusho_cmd_read() {
   local source="" identity_override="" literal=0 from_clipboard=0 require_sig=0 ignore_expiry=0
-  local identity_command=""
+  local identity_command="" split=""
   while [ $# -gt 0 ]; do
     if [ "$literal" -eq 0 ]; then
       case "$1" in
+      --*=*)
+        split=$1
+        shift
+        set -- "${split%%=*}" "${split#*=}" "$@"
+        continue
+        ;;
       --identity)
+        fusho_need_value "$1" "$#"
         identity_override=${2:-}
         shift 2
         continue
         ;;
       --identity-command)
+        fusho_need_value "$1" "$#"
         identity_command=${2:-}
         shift 2
         continue
@@ -230,7 +255,7 @@ fusho_cmd_read() {
         shift
         continue
         ;;
-      -*) fusho_die "unknown option for read: $1" ;;
+      -*) fusho_die "unknown option '$1'. run 'fusho help' for usage." ;;
       *) ;;
       esac
     fi
@@ -301,7 +326,7 @@ fusho_read_run() {
   case "$alg" in
   age)
     if ! fusho_have age; then
-      fusho_die "this message needs age to open. install it with: brew install age, or apt install age"
+      fusho_die "this message needs age to open. install it with: brew install age, or apt install age."
     fi
     fusho_decrypt_age "$identity" "$ciphertext" >"${work}/plainout"
     ;;
@@ -322,7 +347,7 @@ fusho_cmd_keys() {
     user=$(fusho_prompt_required "Whose keys, a GitHub user or user@host" "no user given. run 'fusho help' for usage.") || exit 1
   fi
   if [ -z "$user" ]; then
-    fusho_die "usage: fusho keys <github-user>"
+    fusho_die "no user given. run 'fusho help' for usage."
   fi
   fusho_init_workspace
   work="$FUSHO_WORKSPACE"
@@ -335,39 +360,36 @@ fusho_cmd_keys() {
 }
 
 fusho_doctor_line() {
-  local label="$1" state="$2" remedy="$3"
-  printf '%-14s %-8s %s\n' "$label" "$state" "$remedy"
+  local label="$1" state="$2" detail="$3"
+  printf '%-18s %-8s %s\n' "$label" "$state" "$detail"
+}
+
+fusho_doctor_tool() {
+  local name="$1" remedy="$2" note="${3:-}" found
+  found=$(command -v "$name" 2>/dev/null || true)
+  if [ -n "$found" ]; then
+    fusho_doctor_line "$name" "ok" "${found}${note:+, ${note}}"
+    return 0
+  fi
+  fusho_doctor_line "$name" "missing" "$remedy"
+  return 1
 }
 
 fusho_cmd_doctor() {
-  local failures=0 flavor
+  local failures=0 flavor note=""
   if fusho_have age; then
-    fusho_doctor_line "age" "ok" "$(age --version 2>/dev/null)"
-  else
-    fusho_doctor_line "age" "missing" "install with: brew install age, or apt install age"
-    failures=$((failures + 1))
+    note=$(age --version 2>/dev/null || true)
   fi
-  if fusho_have curl; then
-    fusho_doctor_line "curl" "ok" ""
-  else
-    fusho_doctor_line "curl" "missing" "curl is required to fetch keys from GitHub"
-    failures=$((failures + 1))
-  fi
-  if fusho_have ssh-keygen; then
-    fusho_doctor_line "ssh-keygen" "ok" ""
-  else
-    fusho_doctor_line "ssh-keygen" "missing" "install openssh"
-    failures=$((failures + 1))
-  fi
+  fusho_doctor_tool age "install with: brew install age, or apt install age" "$note" || failures=$((failures + 1))
+  fusho_doctor_tool curl "curl is required to fetch keys from GitHub" || failures=$((failures + 1))
+  fusho_doctor_tool ssh-keygen "install openssh" || failures=$((failures + 1))
   flavor=$(fusho_openssl_flavor)
   case "$flavor" in
-  openssl) fusho_doctor_line "openssl" "ok" "OpenSSL" ;;
-  libressl) fusho_doctor_line "openssl" "ok" "LibreSSL. the RSA fallback pins OAEP to SHA-1 so it interoperates with OpenSSL" ;;
-  *)
-    fusho_doctor_line "openssl" "missing" "install openssl"
-    failures=$((failures + 1))
-    ;;
+  openssl) note="OpenSSL" ;;
+  libressl) note="LibreSSL. the RSA fallback pins OAEP to SHA-1 so it interoperates with OpenSSL" ;;
+  *) note="" ;;
   esac
+  fusho_doctor_tool openssl "install openssl" "$note" || failures=$((failures + 1))
   fusho_doctor_identities
   if [ "$failures" -gt 0 ]; then
     exit 1
@@ -402,12 +424,14 @@ fusho_usage() {
 fusho - send encrypted messages through any chat, using GitHub SSH keys
 
 usage:
-  fusho
+  fusho                       ask what to do, step by step
   fusho send <user>[@host][:<fingerprint-prefix>] [message]
-  fusho read [file]
-  fusho keys <user>[@host]
-  fusho doctor
-  fusho version
+                              encrypt a message to one or more people
+  fusho read [file]           decrypt a message from a file, a pipe or the clipboard
+  fusho keys <user>[@host]    list the keys someone publishes
+  fusho doctor                check the tools fusho needs
+  fusho version               print the version and the encryption engine
+  fusho help                  print this page
 
 options:
   --to <target>       add a recipient. repeat for several

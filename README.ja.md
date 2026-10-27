@@ -21,7 +21,7 @@
 
 </div>
 
-コマンドは5つ、テストは161件、POSIX `sh`のファイル1つで動き、実行時に必要なのは`age`だけです。
+コマンドは5つ、テストは195件、POSIX `sh`のファイル1つで動き、実行時に必要なのは`age`だけです。
 
 > [!NOTE]
 > **脅威モデル。** fushoは秘密をチャット履歴から守ります。保存ポリシー、誰も設定した覚えのないバックアップ、2031年にそのチャンネルを引き継ぐ同僚から守ります。キーロガー、国家機関、そして念のためにと暗号化ブロックのすぐ下に平文を貼る同僚からは守れません。それらは[できないこと](#what-it-does-not-do)に書いてあり、たいていはもっと大きな予算が必要です。
@@ -31,7 +31,7 @@
 ---
 
 ```console
-$ fusho send alice 'database password: correct-horse-battery-staple'
+$ fusho send --no-banner alice 'database password: correct-horse-battery-staple'
 -----BEGIN FUSHO MESSAGE-----
 v: 1
 alg: age
@@ -91,11 +91,11 @@ make install
 
 ```console
 $ fusho doctor
-age            ok       v1.3.1
-curl           ok
-ssh-keygen     ok
-openssl        ok       OpenSSL
-identities     ok       1 usable key pair(s) under ~/.ssh
+age                ok       /opt/homebrew/bin/age, v1.3.2
+curl               ok       /usr/bin/curl
+ssh-keygen         ok       /usr/bin/ssh-keygen
+openssl            ok       /opt/homebrew/bin/openssl, OpenSSL
+identities         ok       1 usable key pair(s) under ~/.ssh
 ```
 
 ## 使い方
@@ -107,7 +107,7 @@ identities     ok       1 usable key pair(s) under ~/.ssh
 | `fusho read [file]` | 復号します。パイプされていれば標準入力を、そうでなければクリップボードを読みます |
 | `fusho keys <user>` | fushoが暗号化できる鍵をフィンガープリント付きで一覧表示します |
 | `fusho doctor` | ローカル環境を確認し、失敗した項目ごとに対処法を表示します |
-| `fusho version` | バージョンと使用中のエンジンを表示します |
+| `fusho version`、`fusho help` | バージョンと使用中のエンジン、または使い方の全文を表示します |
 
 | フラグ | 効果 |
 |:-----|:-------|
@@ -133,6 +133,8 @@ fusho send bob@gitlab 'works across forges'     # gitlab, codeberg, sourcehut, s
 fusho send --to alice --to bob@codeberg 'hi'    # one message, several people
 fusho read                                      # with nothing piped, reads the clipboard
 ```
+
+`--to=alice` の形も使え、`--` でオプションが終わります。fusho はファミリー共通のコマンドライン規約に従います。内容は [FAMILY.md](FAMILY.md) にあります。
 
 > [!TIP]
 > 秘密は引数ではなく標準入力で渡してください。引数はプロセス一覧を通じて、そのマシンの全ユーザーから見えます。
@@ -295,6 +297,14 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
 | メッセージの期限 | `--expires 6h`は期限を記録し、`fusho read`がそれを守ります。あくまで目安で、復号できるメッセージの送信は取り消せません |
 | QRコード出力 | `qrencode`があれば、`--qr`でスマートフォンからパソコンへ渡すための表示を出力します |
 
+## バージョン管理
+
+fushoは[セマンティックバージョニング](https://semver.org/)に従います。すべてのリリースにタグが付き、変更履歴とともに[リリースページ](https://github.com/gufranco/fusho/releases)で公開されます。
+
+## 代替手段
+
+[`ssh-vault`](https://github.com/ssh-vault/ssh-vault)は同じ問題をコンパイル済みのバイナリで解決します。シェルスクリプトを実行したくない場合に向いています。この機能を`gh`に組み込む[要望](https://github.com/cli/cli/issues/12202)も出ています。
+
 <a id="portability"></a>
 
 ## 移植性
@@ -322,13 +332,12 @@ ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
 |:--------|:------------|
 | `make check` | フォーマット、lint、テスト、カバレッジのゲート |
 | `make build` | [`lib/`](lib)を`dist/fusho`に連結します |
-| `make test` | `bats`の161件のテスト |
-| `make cover` | `kcov`、91%のゲート付き |
+| `make test` | `bats`の195件のテスト |
+| `make coverage` | bashcovの行カバレッジ、100%のゲート付き |
 | `make install` | 本体、manページ、補完を配置します |
 
-[`lib/`](lib)にある10個のモジュールは、[`build.sh`](build.sh)が1147行のファイル1つに連結します。インストールされるものを一度で読み通せます。テストは生成した鍵で実際の`age`と`openssl`を動かし、[`test/helpers/keyserver.py`](test/helpers/keyserver.py)が鍵のエンドポイントをローカルで提供するので、`curl`は本物のHTTPステータスコードを受け取ります。
+[`lib/`](lib)にある10個のモジュールは、[`build.sh`](build.sh)が1249行のファイル1つに連結します。インストールされるものを一度で読み通せます。テストは生成した鍵で実際の`age`と`openssl`を動かし、[`test/helpers/keyserver.py`](test/helpers/keyserver.py)が鍵のエンドポイントをローカルで提供するので、`curl`は本物のHTTPステータスコードを受け取ります。
 
-kcovはバックグラウンドのサブシェル、`PATH`で隔離した子プロセス、バイナリのストリームを追えません。そのため、クリップボードの読み込みと一部のエンジン失敗の経路は、テストされていても数に入りません。ゲートはkcovが観測できる値に合わせています。
 
 | 規約 | 出典 |
 |:-----------|:-------|
@@ -338,14 +347,6 @@ kcovはバックグラウンドのサブシェル、`PATH`で隔離した子プ�
 | Bashの最低バージョン | 3.2。macOSの`/bin/bash`を対象にしています |
 
 CIはテストを、UbuntuとApple Silicon・IntelのmacOS Tahoeで実行し、さらにmacOS標準のBash 3.2、コンテナ内のすべてのPOSIXシェル、`bash`を外したAlpineでも実行します。また、macOSのランナーで暗号化し、Linuxのランナーで復号して、チェックサムを比べます。
-
-## バージョン管理
-
-fushoは[セマンティックバージョニング](https://semver.org/)に従います。すべてのリリースにタグが付き、変更履歴とともに[リリースページ](https://github.com/gufranco/fusho/releases)で公開されます。
-
-## 代替手段
-
-[`ssh-vault`](https://github.com/ssh-vault/ssh-vault)は同じ問題をコンパイル済みのバイナリで解決します。シェルスクリプトを実行したくない場合に向いています。この機能を`gh`に組み込む[要望](https://github.com/cli/cli/issues/12202)も出ています。
 
 ## ライセンス
 

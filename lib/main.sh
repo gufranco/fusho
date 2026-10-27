@@ -22,15 +22,16 @@ fusho_main() {
   keys) fusho_cmd_keys "$@" ;;
   keys-url) fusho_keys_url "${1:-}" ;;
   doctor) fusho_cmd_doctor ;;
-  version | --version | -v) fusho_cmd_version ;;
+  version | --version | -V | -v) fusho_cmd_version ;;
   help | --help | -h) fusho_usage ;;
   "")
     if fusho_interactive; then
       fusho_menu
     else
-      fusho_usage && exit 1
+      fusho_die "no command given. run 'fusho help' for usage."
     fi
     ;;
+  -*) fusho_die "unknown option '${command}'. run 'fusho help' for usage." ;;
   *) fusho_die "unknown command '${command}'. run 'fusho help' for usage." ;;
   esac
 }

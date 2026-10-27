@@ -101,7 +101,7 @@ fusho_check_expiry() {
     return 0
   fi
   if [ "$ignore" -eq 1 ]; then
-    fusho_warn "this message expired, opening it anyway because --ignore-expiry was given."
+    fusho_warn "warning: this message expired, opening it anyway because --ignore-expiry was given."
     return 0
   fi
   fusho_die "this message expired. the sender marked it valid until $(fusho_format_stamp "$stamp"). re-run with --ignore-expiry to open it regardless."
