@@ -48,12 +48,26 @@ jobs:
         uses: raven-actions/actionlint@v2
 
   test:
-    name: test on ${{ matrix.os }}
+    name: test on ${{ matrix.os }}, ${{ matrix.toolset }} tools
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-26.04, macos-26, macos-26-intel]
+        include:
+          - os: ubuntu-26.04
+            toolset: native
+          - os: ubuntu-26.04
+            toolset: gnu
+          - os: ubuntu-26.04
+            toolset: uutils
+          - os: macos-26
+            toolset: native
+          - os: macos-26
+            toolset: gnu
+          - os: macos-26
+            toolset: uutils
+          - os: macos-26-intel
+            toolset: native
     steps:
       - uses: actions/checkout@v7
 
@@ -74,8 +88,33 @@ jobs:
           openssl version
           bats --version
 
+      - name: Install the GNU toolset on Linux
+        if: runner.os == 'Linux' && matrix.toolset == 'gnu'
+        run: sudo apt-get install -y gnu-coreutils gawk
+
+      - name: Install the uutils toolset on Linux
+        if: runner.os == 'Linux' && matrix.toolset == 'uutils'
+        run: sudo apt-get install -y rust-coreutils
+
+      - name: Install the GNU toolset on macOS
+        if: runner.os == 'macOS' && matrix.toolset == 'gnu'
+        run: brew install --formula coreutils findutils gnu-sed gawk grep diffutils
+
+      - name: Install the uutils toolset on macOS
+        if: runner.os == 'macOS' && matrix.toolset == 'uutils'
+        run: brew install --formula uutils-coreutils uutils-diffutils uutils-findutils
+
+      - name: Put the ${{ matrix.toolset }} toolset first on PATH
+        if: matrix.toolset != 'native'
+        env:
+          TOOLSET: ${{ matrix.toolset }}
+        run: sh scripts/toolset.sh "${TOOLSET}" "${RUNNER_TEMP}/toolset" >> "${GITHUB_PATH}"
+
       - name: Build the artifact
         run: bash build.sh
+
+      - name: Show which tools the run uses
+        run: ./dist/fusho doctor
 
       - name: Run the suite
         run: bats --print-output-on-failure test
