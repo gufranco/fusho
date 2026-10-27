@@ -21,7 +21,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-Five commands, 195 tests, one POSIX `sh` file, and no runtime dependency beyond `age`.
+Five commands, 204 tests, one POSIX `sh` file, and no runtime dependency beyond `age`.
 
 > [!NOTE]
 > **Threat model.** fusho keeps a secret out of chat history: the retention policy, the backup nobody remembers configuring, the colleague who inherits the channel in 2031. It does not protect against a keylogger, a nation-state, or the coworker who pastes the plaintext right under the encrypted block "just in case". Those are covered in [what it does not do](#what-it-does-not-do), and mostly by a much larger budget.
@@ -92,8 +92,12 @@ $ fusho doctor
 age                ok       /opt/homebrew/bin/age, v1.3.2
 curl               ok       /usr/bin/curl
 ssh-keygen         ok       /usr/bin/ssh-keygen
-openssl            ok       /opt/homebrew/bin/openssl, OpenSSL
-identities         ok       1 usable key pair(s) under ~/.ssh
+awk                ok       /usr/bin/awk, bsd 20200816
+sed                ok       /usr/bin/sed, bsd
+tr                 ok       /usr/bin/tr, bsd
+date               ok       /bin/date, bsd
+openssl            ok       /usr/bin/openssl, LibreSSL. the RSA fallback pins OAEP to SHA-1 so it interoperates with OpenSSL
+identities         ok       2 usable key pair(s) under ~/.ssh
 ```
 
 ## Usage
@@ -314,17 +318,19 @@ The shipped artifact is POSIX `sh`. Each row below passed a full encrypt-and-dec
 | Linux, musl | Alpine with `bash` removed |
 | FreeBSD, OpenBSD, NetBSD | Not covered by CI. Their `/bin/sh` supports every construct the artifact uses |
 
+Every run works on the five toolsets in common use: Linux with GNU or uutils coreutils, and macOS with its own BSD tools, Homebrew's GNU tools or Homebrew's uutils tools. CI runs the whole suite on each, and `fusho doctor` names the flavor and version of every core tool, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`, so a bug report says which tools ran.
+
 ## Development
 
 | Command | Description |
 |:--------|:------------|
 | `make check` | Format, lint, test, and the coverage gate |
 | `make build` | Concatenate [`lib/`](lib) into `dist/fusho` |
-| `make test` | The 195 `bats` tests |
+| `make test` | The 204 `bats` tests |
 | `make coverage` | bashcov line coverage, gated at 100% |
 | `make install` | Copy the artifact, man page and completions into place |
 
-The 10 modules in [`lib/`](lib) are concatenated by [`build.sh`](build.sh) into one 1249-line file, so what people install can be read in one pass. Tests run against real `age` and `openssl` with generated keys, and [`test/helpers/keyserver.py`](test/helpers/keyserver.py) serves the key endpoint locally, so `curl` sees real HTTP status codes.
+The 10 modules in [`lib/`](lib) are concatenated by [`build.sh`](build.sh) into one 1292-line file, so what people install can be read in one pass. Tests run against real `age` and `openssl` with generated keys, and [`test/helpers/keyserver.py`](test/helpers/keyserver.py) serves the key endpoint locally, so `curl` sees real HTTP status codes.
 
 
 | Convention | Source |

@@ -55,6 +55,7 @@ No colour, no emoji, no bracketed level tags.
 - Without a terminal the tool never waits on a prompt. It stops with the usage hint below.
 - A destructive step asks the person to type the device name: `Type disk4 to erase, or anything else to stop: `.
 - With no arguments on a terminal, a tool with several jobs offers a numbered menu headed `What would you like to do?`; a tool with one job asks for its inputs directly.
+- A member that takes a disk accepts its device, such as `/dev/disk4`, or any volume mounted from it, such as `/Volumes/USB`, and works on the whole disk behind the volume.
 
 ## Output
 
@@ -98,6 +99,31 @@ mcopy              missing  mtools, needed for Windows ISOs and format
 
 Each row is `printf '%-18s %-8s %s\n'`: the dependency; `ok`, `missing` or `warn`; then the path when found, followed by a short note when one matters, or the remedy when not.
 
+A row for a core tool, such as `awk`, `sed`, `dd`, `od`, `cmp`, `tr` or `date`, names its flavor and version after the path, so a bug report says which tools ran:
+
+```text
+awk                ok       /usr/bin/awk, bsd 20200816
+dd                 ok       /usr/bin/dd, uutils 0.10.0
+sed                ok       /opt/homebrew/opt/gnu-sed/libexec/gnubin/sed, gnu 4.10
+```
+
+The flavor is `gnu`, `uutils`, `bsd`, `mawk`, `busybox` or `unknown`. It comes from the tool's own `--version` answer, then from where it is installed, then from the system it runs on.
+
+## Toolsets
+
+Every member runs on the five toolsets in common use, and CI runs the whole suite on each:
+
+| Toolset | What it is |
+|:--------|:-----------|
+| Linux, uutils | Ubuntu's default since 25.10: uutils coreutils, with GNU sed and mawk |
+| Linux, GNU | GNU coreutils and gawk |
+| macOS, BSD | The tools macOS ships |
+| macOS, GNU | Homebrew's coreutils, findutils, gnu-sed, gawk, grep and diffutils, first on `PATH` |
+| macOS, uutils | Homebrew's uutils-coreutils, uutils-diffutils and uutils-findutils, first on `PATH` |
+
+- A script uses only options all five accept. Where they differ, the code handles each one and a test covers it.
+- `scripts/toolset.sh gnu` or `scripts/toolset.sh uutils` prints the directories that put a toolset first on `PATH`; CI uses it, and so can a person reproducing a report.
+
 ## Documentation
 
 - A README in English, Japanese, Simplified Chinese and Hong Kong Traditional Chinese, with the same sections in the same order: Quick start, with Prerequisites, Install and Verify; Usage; the tool's own topic sections; Portability; Development; License.
@@ -114,8 +140,8 @@ Each row is `printf '%-18s %-8s %s\n'`: the dependency; `ok`, `missing` or `warn
 
 ## Quality
 
-- POSIX `sh`, tested under `sh`, `dash`, `bash` and `zsh`.
-- ShellCheck at zero findings.
+- 100% shell script in POSIX `sh`, working under `sh`, `dash`, `bash` and `zsh` on both Linux and macOS, each combination tested in CI.
+- ShellCheck at zero errors and zero warnings.
 - `bats` tests that drive the real tools, injecting faults only through small wrappers on `PATH`.
 - 100 percent bashcov line coverage, gated in CI.
 - No comments in source, apart from tool directives and the `Arrange`, `Act`, `Assert` markers in tests.

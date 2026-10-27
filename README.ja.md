@@ -21,7 +21,7 @@
 
 </div>
 
-コマンドは5つ、テストは195件、POSIX `sh`のファイル1つで動き、実行時に必要なのは`age`だけです。
+コマンドは5つ、テストは204件、POSIX `sh`のファイル1つで動き、実行時に必要なのは`age`だけです。
 
 > [!NOTE]
 > **脅威モデル。** fushoは秘密をチャット履歴から守ります。保存ポリシー、誰も設定した覚えのないバックアップ、2031年にそのチャンネルを引き継ぐ同僚から守ります。キーロガー、国家機関、そして念のためにと暗号化ブロックのすぐ下に平文を貼る同僚からは守れません。それらは[できないこと](#what-it-does-not-do)に書いてあり、たいていはもっと大きな予算が必要です。
@@ -94,8 +94,12 @@ $ fusho doctor
 age                ok       /opt/homebrew/bin/age, v1.3.2
 curl               ok       /usr/bin/curl
 ssh-keygen         ok       /usr/bin/ssh-keygen
-openssl            ok       /opt/homebrew/bin/openssl, OpenSSL
-identities         ok       1 usable key pair(s) under ~/.ssh
+awk                ok       /usr/bin/awk, bsd 20200816
+sed                ok       /usr/bin/sed, bsd
+tr                 ok       /usr/bin/tr, bsd
+date               ok       /bin/date, bsd
+openssl            ok       /usr/bin/openssl, LibreSSL. the RSA fallback pins OAEP to SHA-1 so it interoperates with OpenSSL
+identities         ok       2 usable key pair(s) under ~/.ssh
 ```
 
 ## 使い方
@@ -324,6 +328,8 @@ fushoは[セマンティックバージョニング](https://semver.org/)に従�
 | Linux、musl | `bash`を削除したAlpine |
 | FreeBSD、OpenBSD、NetBSD | CIの対象外です。これらの`/bin/sh`は、配布ファイルが使う構文をすべてサポートしています |
 
+Linux の GNU coreutils と uutils coreutils、macOS 標準の BSD ツール、Homebrew の GNU ツール、Homebrew の uutils ツールという、よく使われる 5 つのツールセットのどれでも動きます。CI はそれぞれで全テストを実行し、`fusho doctor` は主要ツールの系統とバージョン（`gnu 9.7`、`uutils 0.12.0`、`bsd 20200816` など）を表示するので、不具合報告でどのツールが動いたかが分かります。
+
 <a id="development"></a>
 
 ## 開発
@@ -332,11 +338,11 @@ fushoは[セマンティックバージョニング](https://semver.org/)に従�
 |:--------|:------------|
 | `make check` | フォーマット、lint、テスト、カバレッジのゲート |
 | `make build` | [`lib/`](lib)を`dist/fusho`に連結します |
-| `make test` | `bats`の195件のテスト |
+| `make test` | `bats`の204件のテスト |
 | `make coverage` | bashcovの行カバレッジ、100%のゲート付き |
 | `make install` | 本体、manページ、補完を配置します |
 
-[`lib/`](lib)にある10個のモジュールは、[`build.sh`](build.sh)が1249行のファイル1つに連結します。インストールされるものを一度で読み通せます。テストは生成した鍵で実際の`age`と`openssl`を動かし、[`test/helpers/keyserver.py`](test/helpers/keyserver.py)が鍵のエンドポイントをローカルで提供するので、`curl`は本物のHTTPステータスコードを受け取ります。
+[`lib/`](lib)にある10個のモジュールは、[`build.sh`](build.sh)が1292行のファイル1つに連結します。インストールされるものを一度で読み通せます。テストは生成した鍵で実際の`age`と`openssl`を動かし、[`test/helpers/keyserver.py`](test/helpers/keyserver.py)が鍵のエンドポイントをローカルで提供するので、`curl`は本物のHTTPステータスコードを受け取ります。
 
 
 | 規約 | 出典 |

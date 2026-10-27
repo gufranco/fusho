@@ -21,7 +21,7 @@
 
 </div>
 
-五个命令，195 个测试，一个 POSIX `sh` 文件，运行时只依赖 `age`。
+五个命令，204 个测试，一个 POSIX `sh` 文件，运行时只依赖 `age`。
 
 > [!NOTE]
 > **威胁模型。** fusho 让秘密不留在聊天记录里：保留策略、没人记得配置过的备份、2031 年接手这个频道的同事，都看不到它。它防不了键盘记录器、国家级对手，也防不了那位为了以防万一、把明文贴在加密块正下方的同事。这些情况写在[它做不到的事](#what-it-does-not-do)里，而且大多需要大得多的预算。
@@ -94,8 +94,12 @@ $ fusho doctor
 age                ok       /opt/homebrew/bin/age, v1.3.2
 curl               ok       /usr/bin/curl
 ssh-keygen         ok       /usr/bin/ssh-keygen
-openssl            ok       /opt/homebrew/bin/openssl, OpenSSL
-identities         ok       1 usable key pair(s) under ~/.ssh
+awk                ok       /usr/bin/awk, bsd 20200816
+sed                ok       /usr/bin/sed, bsd
+tr                 ok       /usr/bin/tr, bsd
+date               ok       /bin/date, bsd
+openssl            ok       /usr/bin/openssl, LibreSSL. the RSA fallback pins OAEP to SHA-1 so it interoperates with OpenSSL
+identities         ok       2 usable key pair(s) under ~/.ssh
 ```
 
 ## 用法
@@ -324,6 +328,8 @@ fusho 遵循[语义化版本](https://semver.org/)。每个版本都有标签，
 | Linux，musl | 移除了 `bash` 的 Alpine |
 | FreeBSD、OpenBSD、NetBSD | 不在 CI 范围内。它们的 `/bin/sh` 支持发布文件用到的所有语法 |
 
+它能在五种常用工具集上运行：Linux 上的 GNU 或 uutils coreutils，以及 macOS 自带的 BSD 工具、Homebrew 的 GNU 工具或 Homebrew 的 uutils 工具。CI 在每种工具集上运行全部测试，`fusho doctor` 会列出每个核心工具的类型和版本，例如 `gnu 9.7`、`uutils 0.12.0` 或 `bsd 20200816`，让错误报告说明用的是哪些工具。
+
 <a id="development"></a>
 
 ## 开发
@@ -332,11 +338,11 @@ fusho 遵循[语义化版本](https://semver.org/)。每个版本都有标签，
 |:--------|:------------|
 | `make check` | 格式检查、lint、测试和覆盖率门槛 |
 | `make build` | 把 [`lib/`](lib) 拼接成 `dist/fusho` |
-| `make test` | 195 个 `bats` 测试 |
+| `make test` | 204 个 `bats` 测试 |
 | `make coverage` | bashcov 行覆盖率，门槛为 100% |
 | `make install` | 安装主程序、man 手册和补全 |
 
-[`lib/`](lib) 中的 10 个模块由 [`build.sh`](build.sh) 拼接成一个 1249 行的文件，安装的内容可以一次读完。测试使用生成的密钥运行真实的 `age` 和 `openssl`，[`test/helpers/keyserver.py`](test/helpers/keyserver.py) 在本地提供公钥接口，所以 `curl` 看到的是真实的 HTTP 状态码。
+[`lib/`](lib) 中的 10 个模块由 [`build.sh`](build.sh) 拼接成一个 1292 行的文件，安装的内容可以一次读完。测试使用生成的密钥运行真实的 `age` 和 `openssl`，[`test/helpers/keyserver.py`](test/helpers/keyserver.py) 在本地提供公钥接口，所以 `curl` 看到的是真实的 HTTP 状态码。
 
 
 | 约定 | 来源 |
