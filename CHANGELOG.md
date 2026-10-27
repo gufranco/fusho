@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.2.0](https://github.com/gufranco/fusho/compare/v2.1.0...v2.2.0) (2026-10-27)
+
+
+### Features
+
+* **cli:** follow the family command-line contract ([51aef7c](https://github.com/gufranco/fusho/commit/51aef7c7069abd0e7e2389f78e5326edfef2d981))
+
 # [2.1.0](https://github.com/gufranco/fusho/compare/v2.0.0...v2.1.0) (2026-10-26)
 
 
