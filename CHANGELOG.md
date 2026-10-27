@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.3.0](https://github.com/gufranco/fusho/compare/v2.2.0...v2.3.0) (2026-10-27)
+
+
+### Features
+
+* **doctor:** name the flavor of each core tool ([5ab6ba1](https://github.com/gufranco/fusho/commit/5ab6ba1d0738467a94429ec56ff93d6e93f6e9e0))
+
 # [2.2.0](https://github.com/gufranco/fusho/compare/v2.1.0...v2.2.0) (2026-10-27)
 
 
