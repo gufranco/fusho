@@ -64,9 +64,6 @@ setup() {
 }
 
 @test "an incompressible payload still round trips" {
-  if [[ -n "${FUSHO_COVERAGE:-}" ]]; then
-    skip "kcov ptrace instrumentation corrupts binary streams, the artifact itself does not"
-  fi
   head -c 3000 /dev/urandom >"${WORK}/random2"
 
   "$FUSHO_BIN" send alice --no-clipboard <"${WORK}/random2" >"${WORK}/random2.armored" 2>/dev/null
