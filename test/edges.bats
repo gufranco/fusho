@@ -138,7 +138,7 @@ wait_until_empty() {
   shim age 'exit 1'
 
   # Act
-  run env PATH="${SHIMS}:${PATH}" python3 -c 'import os,pty,sys; sys.exit(os.waitstatus_to_exitcode(pty.spawn(sys.argv[1:])))' \
+  run env PATH="${SHIMS}:${PATH}" python3 "${FUSHO_TEST_ROOT}/helpers/on_tty.py" \
     "$FUSHO_BIN" read --identity "${WORK}/locked-tty" "${WORK}/to-locked"
 
   # Assert

@@ -222,7 +222,7 @@ setup() {
   printf '%s\n' '#!/usr/bin/env bash' "cat '${WORK}/clip.armored'" >"${dir}/pbpaste"
   chmod +x "${dir}/pbpaste"
 
-  run env PATH="$dir" HOME="${WORK}/home" python3 -c 'import os,pty,sys; sys.exit(os.waitstatus_to_exitcode(pty.spawn(sys.argv[1:])))' "$FUSHO_BIN" read
+  run env PATH="$dir" HOME="${WORK}/home" python3 "${FUSHO_TEST_ROOT}/helpers/on_tty.py" "$FUSHO_BIN" read
 
   assert_status 0
   assert_output_contains "clipboard sourced secret"
