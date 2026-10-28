@@ -62,6 +62,27 @@ round_trip_under() {
   assert_status 0
 }
 
+@test "round trips under the system zsh" {
+  local dir="${WORK}/zsh"
+  mkdir -p "$dir"
+  [[ -x /bin/zsh ]] || skip "this system ships no zsh"
+
+  run round_trip_under /bin/zsh "$dir"
+
+  assert_status 0
+}
+
+@test "round trips under Homebrew's bash and zsh on macOS" {
+  local shell dir brew_bin
+  [[ "$(uname -s)" == Darwin ]] || skip "only macOS ships an older bash and zsh next to Homebrew's"
+  brew_bin="$(brew --prefix)/bin"
+  for shell in bash zsh; do
+    dir="${WORK}/brew-${shell}"
+    mkdir -p "$dir"
+    round_trip_under "${brew_bin}/${shell}" "$dir"
+  done
+}
+
 @test "round trips under every other shell present on this machine" {
   local dir found=0
   for candidate in dash ash mksh oksh posh yash zsh busybox; do

@@ -318,17 +318,17 @@ fusho 遵循[語意化版本](https://semver.org/)。每個版本都有標籤，
 | Shell | 狀態 |
 |:------|:-------|
 | `dash`、`busybox ash`、`posh` | 支援 |
-| `bash` 3.2 和 5.x、`zsh`、`mksh` | 支援 |
+| `bash` 3.2 和 5.x、系統內置和 Homebrew 的 `zsh`、`mksh` | 支援 |
 | `ksh93` | 不支援。它沒有 `local`，fusho 會顯示說明問題的訊息後結束 |
 
 | 系統 | 狀態 |
 |:-------|:-------|
-| macOS | Apple Silicon 和 Intel 上的 Tahoe，包括內置的 `/bin/sh` 和 LibreSSL |
+| macOS | Apple Silicon 和 Intel 上的 Tahoe，既用內置的 `/bin/sh`、LibreSSL、curl 和 OpenSSH，亦用 Homebrew 的 openssl@3、curl、OpenSSH 和 gzip |
 | Linux，glibc | Debian 和 Ubuntu |
 | Linux，musl | 移除了 `bash` 的 Alpine |
 | FreeBSD、OpenBSD、NetBSD | 不在 CI 範圍內。它們的 `/bin/sh` 支援發佈檔案用到的所有語法 |
 
-它能在五種常用工具集上執行：Linux 上的 GNU 或 uutils coreutils，以及 macOS 內置的 BSD 工具、Homebrew 的 GNU 工具或 Homebrew 的 uutils 工具。CI 在每種工具集上執行全部測試，`fusho doctor` 會列出每個核心工具的類型和版本，例如 `gnu 9.7`、`uutils 0.12.0` 或 `bsd 20200816`，讓錯誤報告說明用的是哪些工具。
+它能在五種常用工具集上執行：Linux 上的 GNU 或 uutils coreutils，以及 macOS 內置的工具、Homebrew 中較新的版本或 Homebrew 的 uutils 工具。macOS 內置而 Homebrew 有較新版本的工具，由 bash 和 zsh 到 openssl、curl、ssh-keygen 和 gzip，兩個版本都會測試。CI 在每種工具集上執行全部測試，`fusho doctor` 會列出每個核心工具的類型和版本，例如 `gnu 9.7`、`uutils 0.12.0` 或 `bsd 20200816`，讓錯誤報告說明用的是哪些工具。
 
 <a id="development"></a>
 

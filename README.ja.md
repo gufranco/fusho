@@ -318,17 +318,17 @@ fushoは[セマンティックバージョニング](https://semver.org/)に従�
 | シェル | 状態 |
 |:------|:-------|
 | `dash`、`busybox ash`、`posh` | 対応 |
-| `bash` 3.2と5.x、`zsh`、`mksh` | 対応 |
+| `bash` 3.2と5.x、システムとHomebrewの`zsh`、`mksh` | 対応 |
 | `ksh93` | 非対応。`local`がないため、fushoは問題を説明するメッセージを出して終了します |
 
 | システム | 状態 |
 |:-------|:-------|
-| macOS | Apple SiliconとIntelのTahoe。標準の`/bin/sh`とLibreSSLを含みます |
+| macOS | Apple SiliconとIntelのTahoe。標準の`/bin/sh`、LibreSSL、curl、OpenSSHと、Homebrewのopenssl@3、curl、OpenSSH、gzipの両方 |
 | Linux、glibc | DebianとUbuntu |
 | Linux、musl | `bash`を削除したAlpine |
 | FreeBSD、OpenBSD、NetBSD | CIの対象外です。これらの`/bin/sh`は、配布ファイルが使う構文をすべてサポートしています |
 
-Linux の GNU coreutils と uutils coreutils、macOS 標準の BSD ツール、Homebrew の GNU ツール、Homebrew の uutils ツールという、よく使われる 5 つのツールセットのどれでも動きます。CI はそれぞれで全テストを実行し、`fusho doctor` は主要ツールの系統とバージョン（`gnu 9.7`、`uutils 0.12.0`、`bsd 20200816` など）を表示するので、不具合報告でどのツールが動いたかが分かります。
+Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その新しい Homebrew 版、Homebrew の uutils ツールという、よく使われる 5 つのツールセットのどれでも動きます。macOS 標準のツールのうち Homebrew に新しい版があるものは、bash と zsh から openssl、curl、ssh-keygen、gzip まで、両方の版でテストします。CI はそれぞれで全テストを実行し、`fusho doctor` は主要ツールの系統とバージョン（`gnu 9.7`、`uutils 0.12.0`、`bsd 20200816` など）を表示するので、不具合報告でどのツールが動いたかが分かります。
 
 <a id="development"></a>
 

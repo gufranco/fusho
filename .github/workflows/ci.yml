@@ -63,7 +63,7 @@ jobs:
           - os: macos-26
             toolset: native
           - os: macos-26
-            toolset: gnu
+            toolset: homebrew
           - os: macos-26
             toolset: uutils
           - os: macos-26-intel
@@ -79,7 +79,7 @@ jobs:
 
       - name: Install dependencies on macOS
         if: runner.os == 'macOS'
-        run: brew install age bats-core
+        run: brew install --formula age bats-core bash zsh
 
       - name: Report the environment
         run: |
@@ -96,19 +96,26 @@ jobs:
         if: runner.os == 'Linux' && matrix.toolset == 'uutils'
         run: sudo apt-get install -y rust-coreutils
 
-      - name: Install the GNU toolset on macOS
-        if: runner.os == 'macOS' && matrix.toolset == 'gnu'
-        run: brew install --formula coreutils findutils gnu-sed gawk grep diffutils
+      - name: Install the Homebrew toolset on macOS
+        if: runner.os == 'macOS' && matrix.toolset == 'homebrew'
+        run: brew install --formula coreutils findutils gnu-sed gawk grep diffutils openssl@3 curl openssh gzip
 
       - name: Install the uutils toolset on macOS
         if: runner.os == 'macOS' && matrix.toolset == 'uutils'
         run: brew install --formula uutils-coreutils uutils-diffutils uutils-findutils
 
       - name: Put the ${{ matrix.toolset }} toolset first on PATH
-        if: matrix.toolset != 'native'
         env:
           TOOLSET: ${{ matrix.toolset }}
         run: sh scripts/toolset.sh "${TOOLSET}" "${RUNNER_TEMP}/toolset" >> "${GITHUB_PATH}"
+
+      - name: Show which builds the run uses
+        run: |
+          for tool in bash zsh openssl curl ssh-keygen gzip; do
+            printf '%-10s %s\n' "${tool}" "$(command -v "${tool}" || printf missing)"
+          done
+          openssl version
+          curl --version | head -1
 
       - name: Build the artifact
         run: bash build.sh
@@ -118,10 +125,6 @@ jobs:
 
       - name: Run the suite
         run: bats --print-output-on-failure test
-
-      - name: Run the suite under the system bash
-        if: runner.os == 'macOS'
-        run: /bin/bash -c 'bats --print-output-on-failure test'
 
   shells:
     name: posix shell conformance

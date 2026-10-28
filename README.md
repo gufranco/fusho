@@ -308,17 +308,17 @@ The shipped artifact is POSIX `sh`. Each row below passed a full encrypt-and-dec
 | Shell | Status |
 |:------|:-------|
 | `dash`, `busybox ash`, `posh` | Supported |
-| `bash` 3.2 and 5.x, `zsh`, `mksh` | Supported |
+| `bash` 3.2 and 5.x, the system's `zsh` and Homebrew's, `mksh` | Supported |
 | `ksh93` | Not supported. It lacks `local`, so fusho exits with a message naming the problem |
 
 | System | Status |
 |:-------|:-------|
-| macOS | Tahoe on Apple Silicon and Intel, including stock `/bin/sh` and LibreSSL |
+| macOS | Tahoe on Apple Silicon and Intel, with the stock `/bin/sh`, LibreSSL, curl and OpenSSH, and with Homebrew's openssl@3, curl, OpenSSH and gzip |
 | Linux, glibc | Debian and Ubuntu |
 | Linux, musl | Alpine with `bash` removed |
 | FreeBSD, OpenBSD, NetBSD | Not covered by CI. Their `/bin/sh` supports every construct the artifact uses |
 
-Every run works on the five toolsets in common use: Linux with GNU or uutils coreutils, and macOS with its own BSD tools, Homebrew's GNU tools or Homebrew's uutils tools. CI runs the whole suite on each, and `fusho doctor` names the flavor and version of every core tool, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`, so a bug report says which tools ran.
+Every run works on the five toolsets in common use: Linux with GNU or uutils coreutils, and macOS with the tools it ships, Homebrew's newer builds of them, or Homebrew's uutils tools. Every tool macOS ships that Homebrew also builds newer, from bash and zsh to openssl, curl, ssh-keygen and gzip, is tested in both builds. CI runs the whole suite on each, and `fusho doctor` names the flavor and version of every core tool, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`, so a bug report says which tools ran.
 
 ## Development
 
