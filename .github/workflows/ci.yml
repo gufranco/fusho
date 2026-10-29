@@ -9,15 +9,14 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-
 env:
   SHFMT_VERSION: v3.13.1
 
 jobs:
   lint:
+    concurrency:
+      group: ci-${{ github.ref }}-lint-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: lint and format
     runs-on: ubuntu-26.04
     steps:
@@ -48,6 +47,9 @@ jobs:
         uses: raven-actions/actionlint@v2
 
   test:
+    concurrency:
+      group: ci-${{ github.ref }}-test-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: test on ${{ matrix.os }}, ${{ matrix.toolset }} tools
     runs-on: ${{ matrix.os }}
     strategy:
@@ -127,6 +129,9 @@ jobs:
         run: bats --print-output-on-failure test
 
   shells:
+    concurrency:
+      group: ci-${{ github.ref }}-shells-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: posix shell conformance
     runs-on: ubuntu-26.04
     container: debian:stable-slim
@@ -148,6 +153,9 @@ jobs:
         run: bats --print-output-on-failure test/portability.bats
 
   musl:
+    concurrency:
+      group: ci-${{ github.ref }}-musl-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: musl and busybox
     runs-on: ubuntu-26.04
     container: alpine:latest
@@ -176,6 +184,9 @@ jobs:
           bats --print-output-on-failure test
 
   coverage:
+    concurrency:
+      group: ci-${{ github.ref }}-coverage-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: coverage gate
     runs-on: ubuntu-26.04
     steps:
@@ -197,6 +208,9 @@ jobs:
         run: bash scripts/coverage.sh 100
 
   interop-encrypt:
+    concurrency:
+      group: ci-${{ github.ref }}-interop-encrypt-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: encrypt on macOS
     runs-on: macos-26
     steps:
@@ -232,6 +246,9 @@ jobs:
           retention-days: 1
 
   interop-decrypt:
+    concurrency:
+      group: ci-${{ github.ref }}-interop-decrypt-${{ strategy.job-index }}
+      cancel-in-progress: true
     name: decrypt on Linux
     runs-on: ubuntu-26.04
     needs: interop-encrypt
@@ -263,6 +280,9 @@ jobs:
           echo "macOS to Linux round trip is byte identical"
 
   release:
+    concurrency:
+      group: release-${{ github.ref }}
+      cancel-in-progress: false
     name: release
     runs-on: ubuntu-26.04
     needs: [lint, test, shells, musl, coverage, interop-decrypt]
@@ -303,6 +323,9 @@ jobs:
         run: echo "tag=$(git tag --points-at HEAD | head -n 1)" >> "${GITHUB_OUTPUT}"
 
   formula:
+    concurrency:
+      group: formula-${{ github.ref }}
+      cancel-in-progress: false
     name: formula
     needs: release
     if: needs.release.outputs.tag != ''
