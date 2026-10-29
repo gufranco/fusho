@@ -184,9 +184,6 @@ round_trip_under() {
 }
 
 @test "carries binary content without corruption" {
-  if [[ -n "${FUSHO_COVERAGE:-}" ]]; then
-    skip "kcov ptrace instrumentation corrupts binary streams, the artifact itself does not"
-  fi
   head -c 4096 /dev/urandom >"${WORK}/binary"
 
   "$FUSHO_BIN" send alice --no-clipboard <"${WORK}/binary" >"${WORK}/binary.armored"
