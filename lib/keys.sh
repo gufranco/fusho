@@ -1,3 +1,8 @@
+#!/bin/sh
+
+# shellcheck source=SCRIPTDIR/state.sh
+. "${FUSHO_LIB:?}/state.sh"
+
 fusho_target_user() {
   printf '%s\n' "${1%%@*}"
 }

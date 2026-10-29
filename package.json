@@ -2,7 +2,7 @@
   "name": "fusho-release-tooling",
   "version": "0.0.0-managed-by-semantic-release",
   "private": true,
-  "description": "Release tooling only. The shipped artifact is dist/fusho, a shell script with no Node dependency.",
+  "description": "Release tooling only. fusho is a POSIX shell script with no Node dependency.",
   "license": "MIT",
   "packageManager": "pnpm@12.15.0",
   "devDependencies": {

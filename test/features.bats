@@ -259,7 +259,7 @@ setup() {
     skip "ksh is not installed on this machine"
   fi
 
-  run ksh "${FUSHO_REPO_ROOT}/dist/fusho" version
+  run ksh "${FUSHO_REPO_ROOT}/bin/fusho" version
 
   assert_status 1
   assert_output_contains 'does not support "local"'

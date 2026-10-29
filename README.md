@@ -19,7 +19,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-Five commands, 211 tests, one POSIX `sh` file, and no runtime dependency beyond `age`.
+Five commands, 211 tests, 11 POSIX `sh` modules, and no runtime dependency beyond `age`.
 
 > [!NOTE]
 > **Threat model.** fusho keeps a secret out of chat history: the retention policy, the backup nobody remembers configuring, the colleague who inherits the channel in 2031. It does not protect against a keylogger, a nation-state, or the coworker who pastes the plaintext right under the encrypted block "just in case". Those are covered in [what it does not do](#what-it-does-not-do), and mostly by a much larger budget.
@@ -80,8 +80,6 @@ git clone https://github.com/gufranco/fusho.git
 cd fusho
 make install
 ```
-
-Every [release](https://github.com/gufranco/fusho/releases) also attaches a ready-to-run `dist/fusho`, so a recipient can download one file, read it, and run it.
 
 ### Verify
 
@@ -301,7 +299,7 @@ fusho follows [Semantic Versioning](https://semver.org/). Every release is tagge
 
 ## Portability
 
-The shipped artifact is POSIX `sh`. Each row below passed a full encrypt-and-decrypt round trip.
+fusho is POSIX `sh`. Each row below passed a full encrypt-and-decrypt round trip.
 
 | Shell | Status |
 |:------|:-------|
@@ -314,7 +312,7 @@ The shipped artifact is POSIX `sh`. Each row below passed a full encrypt-and-dec
 | macOS | Tahoe on Apple Silicon and Intel, with the stock `/bin/sh`, LibreSSL, curl and OpenSSH, and with Homebrew's openssl@3, curl, OpenSSH and gzip |
 | Linux, glibc | Debian and Ubuntu |
 | Linux, musl | Alpine with `bash` removed |
-| FreeBSD, OpenBSD, NetBSD | Not covered by CI. Their `/bin/sh` supports every construct the artifact uses |
+| FreeBSD, OpenBSD, NetBSD | Not covered by CI. Their `/bin/sh` supports every construct fusho uses |
 
 Every run works on the five toolsets in common use: Linux with GNU or uutils coreutils, and macOS with the tools it ships, Homebrew's newer builds of them, or Homebrew's uutils tools. Every tool macOS ships that Homebrew also builds newer, from bash and zsh to openssl, curl, ssh-keygen and gzip, is tested in both builds. CI runs the whole suite on each, and `fusho doctor` names the flavor and version of every core tool, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`, so a bug report says which tools ran.
 
@@ -322,13 +320,12 @@ Every run works on the five toolsets in common use: Linux with GNU or uutils cor
 
 | Command | Description |
 |:--------|:------------|
-| `make check` | Format, lint, test, and the coverage gate |
-| `make build` | Concatenate [`lib/`](lib) into `dist/fusho` |
+| `make check` | Lint and test |
 | `make test` | The 211 `bats` tests |
 | `make coverage` | bashcov line coverage, gated at 100% |
-| `make install` | Copy the artifact, man page and completions into place |
+| `make install` | Install the tool, man page and completions under `PREFIX`, `~/.local` by default |
 
-The 10 modules in [`lib/`](lib) are concatenated by [`build.sh`](build.sh) into one 1292-line file, so what people install can be read in one pass. Tests run against real `age` and `openssl` with generated keys, and [`test/helpers/keyserver.py`](test/helpers/keyserver.py) serves the key endpoint locally, so `curl` sees real HTTP status codes.
+[`bin/fusho`](bin/fusho) sources the 11 modules in [`lib/`](lib); there is no build step, so what people install is the code in this repository. Tests run against real `age` and `openssl` with generated keys, and [`test/helpers/keyserver.py`](test/helpers/keyserver.py) serves the key endpoint locally, so `curl` sees real HTTP status codes.
 
 
 | Convention | Source |

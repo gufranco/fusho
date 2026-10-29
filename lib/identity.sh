@@ -1,3 +1,8 @@
+#!/bin/sh
+
+# shellcheck source=SCRIPTDIR/state.sh
+. "${FUSHO_LIB:?}/state.sh"
+
 fusho_find_identity() {
   local wanted="$1"
   local pub priv fingerprint

@@ -1,3 +1,8 @@
+#!/bin/sh
+
+# shellcheck source=SCRIPTDIR/state.sh
+. "${FUSHO_LIB:?}/state.sh"
+
 fusho_emit_armor() {
   local alg="$1" tofile="$2" selected_fps="$3" ciphertext="$4" from="${5:-}" signature="${6:-}" encoding="${7:-}" expires="${8:-}"
   local fingerprint recipient

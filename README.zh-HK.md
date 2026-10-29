@@ -19,7 +19,7 @@
 
 </div>
 
-五個指令，211 個測試，一個 POSIX `sh` 檔案，執行時只需要 `age`。
+五個指令，211 個測試，11 個 POSIX `sh` 模組，執行時只需要 `age`。
 
 > [!NOTE]
 > **威脅模型。** fusho 令秘密不會留在聊天記錄之中：保留政策、沒有人記得設定過的備份、2031 年接手這個頻道的同事，都看不到它。它防不了鍵盤記錄程式、國家級對手，也防不了那位為求穩妥、把明文貼在加密區塊正下方的同事。這些情況寫在[它做不到的事](#what-it-does-not-do)之中，而且大多需要大得多的預算。
@@ -82,8 +82,6 @@ git clone https://github.com/gufranco/fusho.git
 cd fusho
 make install
 ```
-
-每個[版本](https://github.com/gufranco/fusho/releases)都附有可直接執行的 `dist/fusho`，收件人可以只下載這一個檔案，讀完再執行。
 
 ### 驗證
 
@@ -311,7 +309,7 @@ fusho 遵循[語意化版本](https://semver.org/)。每個版本都有標籤，
 
 ## 可攜性
 
-發佈的檔案是 POSIX `sh`。下表每一行都通過了完整的加密及解密往返測試。
+fusho 是 POSIX `sh`。下表每一行都通過了完整的加密及解密往返測試。
 
 | Shell | 狀態 |
 |:------|:-------|
@@ -324,7 +322,7 @@ fusho 遵循[語意化版本](https://semver.org/)。每個版本都有標籤，
 | macOS | Apple Silicon 和 Intel 上的 Tahoe，既用內置的 `/bin/sh`、LibreSSL、curl 和 OpenSSH，亦用 Homebrew 的 openssl@3、curl、OpenSSH 和 gzip |
 | Linux，glibc | Debian 和 Ubuntu |
 | Linux，musl | 移除了 `bash` 的 Alpine |
-| FreeBSD、OpenBSD、NetBSD | 不在 CI 範圍內。它們的 `/bin/sh` 支援發佈檔案用到的所有語法 |
+| FreeBSD、OpenBSD、NetBSD | 不在 CI 範圍內。它們的 `/bin/sh` 支援 fusho 用到的所有語法 |
 
 它能在五種常用工具集上執行：Linux 上的 GNU 或 uutils coreutils，以及 macOS 內置的工具、Homebrew 中較新的版本或 Homebrew 的 uutils 工具。macOS 內置而 Homebrew 有較新版本的工具，由 bash 和 zsh 到 openssl、curl、ssh-keygen 和 gzip，兩個版本都會測試。CI 在每種工具集上執行全部測試，`fusho doctor` 會列出每個核心工具的類型和版本，例如 `gnu 9.7`、`uutils 0.12.0` 或 `bsd 20200816`，讓錯誤報告說明用的是哪些工具。
 
@@ -334,13 +332,12 @@ fusho 遵循[語意化版本](https://semver.org/)。每個版本都有標籤，
 
 | 指令 | 說明 |
 |:--------|:------------|
-| `make check` | 格式檢查、lint、測試及覆蓋率門檻 |
-| `make build` | 把 [`lib/`](lib) 合併成 `dist/fusho` |
+| `make check` | lint 及測試 |
 | `make test` | 211 個 `bats` 測試 |
 | `make coverage` | bashcov 行覆蓋率，門檻為 100% |
-| `make install` | 安裝主程式、man 說明頁及自動補全 |
+| `make install` | 把主程式、man 說明頁及自動補全安裝到 `PREFIX` 之下，預設為 `~/.local` |
 
-[`lib/`](lib) 內的 10 個模組由 [`build.sh`](build.sh) 合併成一個 1292 行的檔案，安裝的內容可以一次讀完。測試以產生的金鑰執行真實的 `age` 和 `openssl`，[`test/helpers/keyserver.py`](test/helpers/keyserver.py) 在本機提供金鑰端點，所以 `curl` 看到的是真實的 HTTP 狀態碼。
+[`bin/fusho`](bin/fusho) 載入 [`lib/`](lib) 內的 11 個模組；沒有建置步驟，安裝的就是這個儲存庫內的程式碼。測試以產生的金鑰執行真實的 `age` 和 `openssl`，[`test/helpers/keyserver.py`](test/helpers/keyserver.py) 在本機提供金鑰端點，所以 `curl` 看到的是真實的 HTTP 狀態碼。
 
 
 | 慣例 | 來源 |

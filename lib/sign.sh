@@ -1,3 +1,8 @@
+#!/bin/sh
+
+# shellcheck source=SCRIPTDIR/state.sh
+. "${FUSHO_LIB:?}/state.sh"
+
 fusho_sign_identity() {
   local target="$1" work="$2"
   local raw supported fingerprint identity

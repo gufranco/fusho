@@ -1,0 +1,40 @@
+#!/bin/sh
+set -eu
+[ -n "${ZSH_VERSION:-}" ] && emulate sh
+
+fusho_self="$0"
+case "${fusho_self}" in
+*/*) ;;
+*) fusho_self="$(command -v -- "${fusho_self}")" ;;
+esac
+FUSHO_LIB="$(cd "${fusho_self%/*}/../lib" && pwd)" || exit 1
+
+# shellcheck source=SCRIPTDIR/../lib/core.sh
+. "${FUSHO_LIB}/core.sh"
+# shellcheck source=SCRIPTDIR/../lib/armor.sh
+. "${FUSHO_LIB}/armor.sh"
+# shellcheck source=SCRIPTDIR/../lib/crypto.sh
+. "${FUSHO_LIB}/crypto.sh"
+# shellcheck source=SCRIPTDIR/../lib/identity.sh
+. "${FUSHO_LIB}/identity.sh"
+# shellcheck source=SCRIPTDIR/../lib/io.sh
+. "${FUSHO_LIB}/io.sh"
+# shellcheck source=SCRIPTDIR/../lib/keys.sh
+. "${FUSHO_LIB}/keys.sh"
+# shellcheck source=SCRIPTDIR/../lib/sign.sh
+. "${FUSHO_LIB}/sign.sh"
+# shellcheck source=SCRIPTDIR/../lib/trust.sh
+. "${FUSHO_LIB}/trust.sh"
+# shellcheck source=SCRIPTDIR/../lib/commands.sh
+. "${FUSHO_LIB}/commands.sh"
+# shellcheck source=SCRIPTDIR/../lib/main.sh
+. "${FUSHO_LIB}/main.sh"
+
+fusho_require_local
+
+trap fusho_cleanup EXIT
+trap 'fusho_cleanup; exit 130' INT
+trap 'fusho_cleanup; exit 143' TERM
+trap 'fusho_cleanup; exit 129' HUP
+
+fusho_main "$@"

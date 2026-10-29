@@ -71,7 +71,7 @@ wait_until_empty() {
   ! "$ksh" -c 'f() { local x=1; }; f' 2>/dev/null || skip "this ksh supports local"
 
   # Act
-  run "$ksh" "${FUSHO_REPO_ROOT}/dist/fusho" version
+  run "$ksh" "${FUSHO_REPO_ROOT}/bin/fusho" version
 
   # Assert
   assert_status 1

@@ -1,3 +1,8 @@
+#!/bin/sh
+
+# shellcheck source=SCRIPTDIR/state.sh
+. "${FUSHO_LIB:?}/state.sh"
+
 fusho_trust_store() {
   local base="${XDG_CONFIG_HOME:-${HOME}/.config}"
   local dir="${base}/fusho"

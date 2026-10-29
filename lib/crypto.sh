@@ -1,3 +1,8 @@
+#!/bin/sh
+
+# shellcheck source=SCRIPTDIR/state.sh
+. "${FUSHO_LIB:?}/state.sh"
+
 FUSHO_SED_KEYBITS='s/.*Public-Key: (\([0-9][0-9]*\) bit).*/\1/p'
 
 fusho_rsa_capacity() {

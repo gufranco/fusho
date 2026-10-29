@@ -1,3 +1,8 @@
+#!/bin/sh
+
+# shellcheck source=SCRIPTDIR/state.sh
+. "${FUSHO_LIB:?}/state.sh"
+
 fusho_cmd_send() {
   local prefix="" message="" no_clipboard=0 target="" literal=0
   local targets="" keyfiles="" as_json=0 sign_as="" accept_new=0 want_qr=0 expires="" no_banner=0 split=""
@@ -459,7 +464,7 @@ fusho_cmd_version() {
   if fusho_have age; then
     engine="age"
   fi
-  printf 'fusho %s\nengine: %s\n' "$FUSHO_VERSION" "$engine"
+  printf 'fusho %s\nengine: %s\n' "$(fusho_version)" "$engine"
 }
 
 fusho_usage() {

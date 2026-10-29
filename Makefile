@@ -1,50 +1,44 @@
-SHELL := /bin/bash
-ARTIFACT := dist/fusho
-SOURCES := lib build.sh install.sh scripts/coverage.sh scripts/set-version.sh scripts/toolset.sh scripts/check-names.sh
-TESTS := test
-COVERAGE_DIR := coverage
-COVERAGE_MIN := 100
+SHELL := /bin/sh
+PREFIX ?= $(HOME)/.local
+SCRIPTS := bin/fusho lib/*.sh scripts/*.sh test/*.bats test/helpers/*.bash
 
-.PHONY: help build fmt fmt-check lint test coverage check clean install
+.PHONY: help fmt lint test coverage check install
 
 help:
 	@echo "targets:"
-	@echo "  build      concatenate lib/*.sh into $(ARTIFACT)"
-	@echo "  fmt        format shell sources with shfmt"
-	@echo "  fmt-check  fail when formatting is not applied"
-	@echo "  lint       shellcheck at zero warnings"
-	@echo "  test       build, then run the bats suite"
-	@echo "  coverage   bashcov line coverage with a $(COVERAGE_MIN)% gate"
-	@echo "  check      fmt-check, lint, test, coverage"
-	@echo "  install    install $(ARTIFACT), the man page and the completions"
-
-build:
-	@bash build.sh
+	@echo "  fmt         format every script with shfmt -i 2"
+	@echo "  lint        shfmt, shellcheck and mandoc at zero findings"
+	@echo "  test        bats suites"
+	@echo "  coverage    bashcov line coverage with a 100% gate"
+	@echo "  check       lint and test"
+	@echo "  install     install the tool, man page and completions under PREFIX (default ~/.local)"
 
 fmt:
-	shfmt -w -i 2 $(SOURCES) $(TESTS)
+	shfmt -i 2 -w $(SCRIPTS)
 
-fmt-check:
-	shfmt -d -i 2 $(SOURCES) $(TESTS)
-
-lint: build
-	shellcheck --severity=style --shell=sh -e SC3043 $(ARTIFACT)
-	shellcheck --severity=style --shell=bash build.sh install.sh scripts/coverage.sh scripts/set-version.sh
-	shellcheck --severity=style --shell=sh scripts/toolset.sh scripts/check-names.sh
+lint:
+	shfmt -i 2 -d $(SCRIPTS)
+	shellcheck --severity=style --shell=sh -e SC3043 -x bin/fusho lib/*.sh scripts/toolset.sh scripts/check-names.sh scripts/set-version.sh
 	sh scripts/check-names.sh
+	shellcheck --severity=style --shell=bash scripts/coverage.sh
 	shellcheck --severity=style --shell=bash completions/fusho.bash
-	shellcheck --severity=style --shell=bash -e SC2154 $(TESTS)/*.bats $(TESTS)/helpers/*.bash
+	shellcheck --severity=style --shell=bash -e SC2154 test/*.bats test/helpers/*.bash
+	mandoc -T lint man/fusho.1
 
-test: build
-	bats --print-output-on-failure $(TESTS)
+test:
+	bats --print-output-on-failure test
 
-coverage: build
-	@bash scripts/coverage.sh $(COVERAGE_MIN)
+coverage:
+	bash scripts/coverage.sh 100
 
-check: fmt-check lint test coverage
+check: lint test
 
-clean:
-	rm -rf $(COVERAGE_DIR) dist $(TESTS)/tmp
-
-install: build
-	@bash install.sh
+install:
+	mkdir -p "$(PREFIX)/share/fusho" "$(PREFIX)/bin" "$(PREFIX)/share/man/man1" "$(PREFIX)/share/bash-completion/completions" "$(PREFIX)/share/zsh/site-functions" "$(PREFIX)/share/fish/vendor_completions.d"
+	cp -R bin lib "$(PREFIX)/share/fusho/"
+	cp -f man/fusho.1 "$(PREFIX)/share/man/man1/fusho.1"
+	cp -f completions/fusho.bash "$(PREFIX)/share/bash-completion/completions/fusho"
+	cp -f completions/_fusho "$(PREFIX)/share/zsh/site-functions/_fusho"
+	cp -f completions/fusho.fish "$(PREFIX)/share/fish/vendor_completions.d/fusho.fish"
+	printf '#!/bin/sh\nexec "%s/share/fusho/bin/fusho" "$$@"\n' "$(PREFIX)" > "$(PREFIX)/bin/fusho"
+	chmod 755 "$(PREFIX)/bin/fusho"

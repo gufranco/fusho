@@ -19,7 +19,7 @@
 
 </div>
 
-コマンドは5つ、テストは211件、POSIX `sh`のファイル1つで動き、実行時に必要なのは`age`だけです。
+コマンドは5つ、テストは211件、POSIX `sh`のモジュール11個で動き、実行時に必要なのは`age`だけです。
 
 > [!NOTE]
 > **脅威モデル。** fushoは秘密をチャット履歴から守ります。保存ポリシー、誰も設定した覚えのないバックアップ、2031年にそのチャンネルを引き継ぐ同僚から守ります。キーロガー、国家機関、そして念のためにと暗号化ブロックのすぐ下に平文を貼る同僚からは守れません。それらは[できないこと](#what-it-does-not-do)に書いてあり、たいていはもっと大きな予算が必要です。
@@ -82,8 +82,6 @@ git clone https://github.com/gufranco/fusho.git
 cd fusho
 make install
 ```
-
-各[リリース](https://github.com/gufranco/fusho/releases)にはそのまま実行できる`dist/fusho`も添付されているので、受信者はファイルを1つダウンロードし、読んでから実行できます。
 
 ### 確認
 
@@ -311,7 +309,7 @@ fushoは[セマンティックバージョニング](https://semver.org/)に従�
 
 ## 移植性
 
-配布するファイルはPOSIX `sh`です。下の各行は、暗号化から復号までの往復を通過しています。
+fusho はPOSIX `sh`です。下の各行は、暗号化から復号までの往復を通過しています。
 
 | シェル | 状態 |
 |:------|:-------|
@@ -324,7 +322,7 @@ fushoは[セマンティックバージョニング](https://semver.org/)に従�
 | macOS | Apple SiliconとIntelのTahoe。標準の`/bin/sh`、LibreSSL、curl、OpenSSHと、Homebrewのopenssl@3、curl、OpenSSH、gzipの両方 |
 | Linux、glibc | DebianとUbuntu |
 | Linux、musl | `bash`を削除したAlpine |
-| FreeBSD、OpenBSD、NetBSD | CIの対象外です。これらの`/bin/sh`は、配布ファイルが使う構文をすべてサポートしています |
+| FreeBSD、OpenBSD、NetBSD | CIの対象外です。これらの`/bin/sh`は、fusho が使う構文をすべてサポートしています |
 
 Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その新しい Homebrew 版、Homebrew の uutils ツールという、よく使われる 5 つのツールセットのどれでも動きます。macOS 標準のツールのうち Homebrew に新しい版があるものは、bash と zsh から openssl、curl、ssh-keygen、gzip まで、両方の版でテストします。CI はそれぞれで全テストを実行し、`fusho doctor` は主要ツールの系統とバージョン（`gnu 9.7`、`uutils 0.12.0`、`bsd 20200816` など）を表示するので、不具合報告でどのツールが動いたかが分かります。
 
@@ -334,13 +332,12 @@ Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その
 
 | コマンド | 説明 |
 |:--------|:------------|
-| `make check` | フォーマット、lint、テスト、カバレッジのゲート |
-| `make build` | [`lib/`](lib)を`dist/fusho`に連結します |
+| `make check` | lintとテスト |
 | `make test` | `bats`の211件のテスト |
 | `make coverage` | bashcovの行カバレッジ、100%のゲート付き |
-| `make install` | 本体、manページ、補完を配置します |
+| `make install` | 本体、manページ、補完を`PREFIX`の下に入れます。既定は`~/.local`です |
 
-[`lib/`](lib)にある10個のモジュールは、[`build.sh`](build.sh)が1292行のファイル1つに連結します。インストールされるものを一度で読み通せます。テストは生成した鍵で実際の`age`と`openssl`を動かし、[`test/helpers/keyserver.py`](test/helpers/keyserver.py)が鍵のエンドポイントをローカルで提供するので、`curl`は本物のHTTPステータスコードを受け取ります。
+[`bin/fusho`](bin/fusho)は[`lib/`](lib)にある11個のモジュールを読み込みます。ビルドの手順はなく、インストールされるのはこのリポジトリのコードそのものです。テストは生成した鍵で実際の`age`と`openssl`を動かし、[`test/helpers/keyserver.py`](test/helpers/keyserver.py)が鍵のエンドポイントをローカルで提供するので、`curl`は本物のHTTPステータスコードを受け取ります。
 
 
 | 規約 | 出典 |

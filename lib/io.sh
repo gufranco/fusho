@@ -1,3 +1,8 @@
+#!/bin/sh
+
+# shellcheck source=SCRIPTDIR/state.sh
+. "${FUSHO_LIB:?}/state.sh"
+
 fusho_clipboard_copy() {
   local file="$1"
   if [ -n "$FUSHO_CLIPBOARD_COPY" ]; then

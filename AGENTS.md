@@ -10,7 +10,8 @@ fusho is one of the tools that share a single command-line contract: [FAMILY.md]
 
 | Path | Holds |
 |:-----|:------|
-| [`lib/`](lib) | The modules. [`build.sh`](build.sh) concatenates them, with [`lib/main.sh`](lib/main.sh) last, into `dist/fusho` |
+| [`bin/fusho`](bin/fusho) | The entry point: it sources the modules, sets the traps and dispatches the command |
+| [`lib/`](lib) | The modules. [`lib/state.sh`](lib/state.sh) declares every global except the version, which lives in [`lib/core.sh`](lib/core.sh) |
 | [`man/fusho.1`](man/fusho.1) | The man page |
 | [`completions/`](completions) | bash, zsh and fish completions |
 | [`test/`](test) | The `bats` suite. [`test/helpers/`](test/helpers) holds fixtures, assertions and a local key server |
@@ -21,13 +22,12 @@ fusho is one of the tools that share a single command-line contract: [FAMILY.md]
 
 | Command | Does |
 |:--------|:-----|
-| `make build` | Builds `dist/fusho` |
 | `make fmt` | Formats with `shfmt -i 2` |
-| `make lint` | ShellCheck at zero findings |
-| `make test` | Builds, then runs every `bats` test |
+| `make lint` | shfmt, ShellCheck and mandoc at zero findings, and the name check |
+| `make test` | Every `bats` test |
 | `make coverage` | bashcov line coverage, gated at 100% |
-| `make check` | Format check, lint, test and coverage |
-| `make install` | Installs the artifact, man page and completions under `~/.local` |
+| `make check` | Lint and test |
+| `make install` | Installs the tool, man page and completions under `~/.local` |
 
 ## Hard rules
 
@@ -36,7 +36,7 @@ fusho is one of the tools that share a single command-line contract: [FAMILY.md]
 - CI runs the suite on every toolset through [`scripts/toolset.sh`](scripts/toolset.sh). To reproduce a report, put the reporter's toolset first: `export PATH="$(sh scripts/toolset.sh gnu | paste -sd: -):$PATH"`.
 - `doctor` names the flavor and version of every core tool it lists, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`. A new core dependency gets a `doctor` row with its flavor in the same change.
 - [CLAUDE.md](CLAUDE.md) holds only `@AGENTS.md`. Rules for this repository live here, never there.
-- The artifact is POSIX `sh`. `local` is the one extension it relies on.
+- fusho is POSIX `sh`. `local` is the one extension it relies on, until it moves to function-prefixed globals like the rest of the family.
 - Every environment variable fusho reads is named `FUSHO_<NAME>`, test switches included (owner's rule, 2026-10-28). Internal globals also carry `FUSHO_` and are assigned outright, never read from the environment. [`scripts/check-names.sh`](scripts/check-names.sh), part of `make lint`, fails on any other name.
 - Every line fusho prints to a terminal fits in 80 columns (owner's rule, 2026-10-28). Text with a user name, a path or another value of any length goes through `fusho_say`, `fusho_die` or `fusho_warn`, which wrap between words when stdout is a terminal and keep a message on one line in a pipe; `FUSHO_TERMINAL=1` makes a test behave as a terminal. [`test/width.bats`](test/width.bats) checks help and version. `doctor` is exempt and keeps one row per tool at any width.
 - No comments in source. Tool directives and the `Arrange`, `Act`, `Assert` markers in tests are the only exceptions.

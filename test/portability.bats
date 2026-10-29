@@ -31,15 +31,15 @@ round_trip_under() {
   cmp -s "${dir}/original" "${dir}/recovered"
 }
 
-@test "the artifact declares a POSIX sh shebang" {
-  run head -1 "${FUSHO_REPO_ROOT}/dist/fusho"
+@test "the entry point declares a POSIX sh shebang" {
+  run head -1 "${FUSHO_REPO_ROOT}/bin/fusho"
 
   assert_status 0
   assert_output_contains "/bin/sh"
 }
 
-@test "the artifact contains no bash-only constructs" {
-  run grep -nE '\[\[|<\(|pipefail|BASH_SOURCE|\bdeclare\b|\bmapfile\b|\breadarray\b' "${FUSHO_REPO_ROOT}/dist/fusho"
+@test "the entry point and modules contain no bash-only constructs" {
+  run grep -nE '\[\[|<\(|pipefail|BASH_SOURCE|\bdeclare\b|\bmapfile\b|\breadarray\b' "${FUSHO_REPO_ROOT}/bin/fusho" "${FUSHO_REPO_ROOT}"/lib/*.sh
 
   assert_status 1
 }

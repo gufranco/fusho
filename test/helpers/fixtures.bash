@@ -1,6 +1,6 @@
 FUSHO_TEST_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 FUSHO_REPO_ROOT="$(cd "${FUSHO_TEST_ROOT}/.." && pwd)"
-FUSHO_BIN="${FUSHO_BIN:-${FUSHO_REPO_ROOT}/dist/fusho}"
+FUSHO_BIN="${FUSHO_BIN:-${FUSHO_REPO_ROOT}/bin/fusho}"
 
 fixture_workspace() {
   local dir

@@ -1,3 +1,8 @@
+#!/bin/sh
+
+# shellcheck source=SCRIPTDIR/state.sh
+. "${FUSHO_LIB:?}/state.sh"
+
 fusho_menu() {
   local choice=""
   printf '%s\n' "What would you like to do?" "  1) send a message" "  2) read a message" "  3) list someone's keys" "  4) check this machine" >&2
@@ -35,12 +40,3 @@ fusho_main() {
   *) fusho_die "unknown command '${command}'. run 'fusho help' for usage." ;;
   esac
 }
-
-fusho_require_local
-
-trap fusho_cleanup EXIT
-trap 'fusho_cleanup; exit 130' INT
-trap 'fusho_cleanup; exit 143' TERM
-trap 'fusho_cleanup; exit 129' HUP
-
-fusho_main "$@"
