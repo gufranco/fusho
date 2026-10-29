@@ -1,5 +1,31 @@
 # Changelog
 
+# [3.0.0](https://github.com/gufranco/fusho/compare/v2.4.0...v3.0.0) (2026-10-29)
+
+
+* feat!: drop -v as a spelling of version ([ce9e661](https://github.com/gufranco/fusho/commit/ce9e6618ad2c268326f438629598f7adfe617507))
+* feat!: run fusho from bin/ and lib/ ([c000158](https://github.com/gufranco/fusho/commit/c000158a382f860850a4c4dcb06a19100eaa2ba7))
+
+
+### Bug Fixes
+
+* escape control characters in JSON output ([d13adf8](https://github.com/gufranco/fusho/commit/d13adf8ef8e2b21fad35cb55787b569338053c76))
+* pin keys through one private atomic write ([6889181](https://github.com/gufranco/fusho/commit/6889181d71524b7a15f6099b4f17a3d9c06e637d))
+* refuse a message body that is not base64 ([b31709b](https://github.com/gufranco/fusho/commit/b31709bcb26648a7cdd1d16f2d438a055455e344))
+
+
+### Features
+
+* run fusho on any POSIX sh, ksh93 included ([685987e](https://github.com/gufranco/fusho/commit/685987e7f885218c44e12bc7fe61a44290f42438))
+
+
+### BREAKING CHANGES
+
+* fusho -v no longer prints the version; use fusho -V,
+fusho --version or fusho version.
+* releases no longer attach the single-file dist/fusho.
+Install fusho with Homebrew or make install from a checkout.
+
 # [2.4.0](https://github.com/gufranco/fusho/compare/v2.3.0...v2.4.0) (2026-10-29)
 
 
