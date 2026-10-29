@@ -1,5 +1,12 @@
 # Changelog
 
+# [2.4.0](https://github.com/gufranco/fusho/compare/v2.3.0...v2.4.0) (2026-10-29)
+
+
+### Features
+
+* fit terminal output in 80 columns ([168ebc9](https://github.com/gufranco/fusho/commit/168ebc91392427ec0b7784f2a02a19828fe9469c))
+
 # [2.3.0](https://github.com/gufranco/fusho/compare/v2.2.0...v2.3.0) (2026-10-27)
 
 
