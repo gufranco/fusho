@@ -470,7 +470,8 @@ usage:
   fusho                       ask what to do, step by step
   fusho send <user>[@host][:<fingerprint-prefix>] [message]
                               encrypt a message to one or more people
-  fusho read [file]           decrypt a message from a file, a pipe or the clipboard
+  fusho read [file]           decrypt a message from a file, a pipe or the
+                              clipboard
   fusho keys <user>[@host]    list the keys someone publishes
   fusho doctor                check the tools fusho needs
   fusho version               print the version and the encryption engine

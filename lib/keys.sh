@@ -96,12 +96,12 @@ fusho_reject_bad_pin() {
   local count
   count=$(wc -l <"$selected_fps" | tr -d ' ')
   if [ "$count" -eq 0 ]; then
-    printf 'fusho: no key of %s matches fingerprint prefix %s. available:\n' "$user" "$prefix" >&2
+    fusho_say 0 "fusho: no key of $user matches fingerprint prefix $prefix. available:" >&2
     fusho_fingerprints "$supported" >&2
     exit 1
   fi
   if [ "$count" -gt 1 ]; then
-    printf 'fusho: fingerprint prefix %s is ambiguous for %s. it matches:\n' "$prefix" "$user" >&2
+    fusho_say 0 "fusho: fingerprint prefix $prefix is ambiguous for $user. it matches:" >&2
     cat "$selected_fps" >&2
     exit 1
   fi

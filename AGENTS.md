@@ -37,6 +37,8 @@ fusho is one of the tools that share a single command-line contract: [FAMILY.md]
 - `doctor` names the flavor and version of every core tool it lists, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`. A new core dependency gets a `doctor` row with its flavor in the same change.
 - [CLAUDE.md](CLAUDE.md) holds only `@AGENTS.md`. Rules for this repository live here, never there.
 - The artifact is POSIX `sh`. `local` is the one extension it relies on.
+- Every environment variable fusho reads is named `FUSHO_<NAME>`, test switches included (owner's rule, 2026-10-28). Internal globals also carry `FUSHO_` and are assigned outright, never read from the environment. [`scripts/check-names.sh`](scripts/check-names.sh), part of `make lint`, fails on any other name.
+- Every line fusho prints to a terminal fits in 80 columns (owner's rule, 2026-10-28). Text with a user name, a path or another value of any length goes through `fusho_say`, `fusho_die` or `fusho_warn`, which wrap between words when stdout is a terminal and keep a message on one line in a pipe; `FUSHO_TERMINAL=1` makes a test behave as a terminal. [`test/width.bats`](test/width.bats) checks help and version. `doctor` is exempt and keeps one row per tool at any width.
 - No comments in source. Tool directives and the `Arrange`, `Act`, `Assert` markers in tests are the only exceptions.
 - Tests run real `age`, `openssl` and `ssh-keygen` with generated keys. Faults come only from small wrappers placed on `PATH`.
 - A new option goes into the help page, the man page and all three completions in the same commit; a test fails otherwise.

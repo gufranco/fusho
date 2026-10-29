@@ -21,7 +21,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-Five commands, 204 tests, one POSIX `sh` file, and no runtime dependency beyond `age`.
+Five commands, 211 tests, one POSIX `sh` file, and no runtime dependency beyond `age`.
 
 > [!NOTE]
 > **Threat model.** fusho keeps a secret out of chat history: the retention policy, the backup nobody remembers configuring, the colleague who inherits the channel in 2031. It does not protect against a keylogger, a nation-state, or the coworker who pastes the plaintext right under the encrypted block "just in case". Those are covered in [what it does not do](#what-it-does-not-do), and mostly by a much larger budget.
@@ -202,7 +202,7 @@ fusho: the keys published by alice changed since you last messaged them.
   pinned:  SHA256:Hb2u7V4cmzORXDF0QulbVVq83T/B6AfX+64LPZS64n0
   current: SHA256:6FV5K276oVndQJv5uxtytvD/KIrimmU/SmWvEgmmdIo
   a key rotation looks exactly like an account takeover from here.
-  verify the fingerprint with them out of band, then re-run with --accept-new-key
+  check the fingerprint with them out of band, then re-run with --accept-new-key
 ```
 
 ## What it does not do
@@ -326,7 +326,7 @@ Every run works on the five toolsets in common use: Linux with GNU or uutils cor
 |:--------|:------------|
 | `make check` | Format, lint, test, and the coverage gate |
 | `make build` | Concatenate [`lib/`](lib) into `dist/fusho` |
-| `make test` | The 204 `bats` tests |
+| `make test` | The 211 `bats` tests |
 | `make coverage` | bashcov line coverage, gated at 100% |
 | `make install` | Copy the artifact, man page and completions into place |
 

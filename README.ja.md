@@ -21,7 +21,7 @@
 
 </div>
 
-コマンドは5つ、テストは204件、POSIX `sh`のファイル1つで動き、実行時に必要なのは`age`だけです。
+コマンドは5つ、テストは211件、POSIX `sh`のファイル1つで動き、実行時に必要なのは`age`だけです。
 
 > [!NOTE]
 > **脅威モデル。** fushoは秘密をチャット履歴から守ります。保存ポリシー、誰も設定した覚えのないバックアップ、2031年にそのチャンネルを引き継ぐ同僚から守ります。キーロガー、国家機関、そして念のためにと暗号化ブロックのすぐ下に平文を貼る同僚からは守れません。それらは[できないこと](#what-it-does-not-do)に書いてあり、たいていはもっと大きな予算が必要です。
@@ -206,7 +206,7 @@ fusho: the keys published by alice changed since you last messaged them.
   pinned:  SHA256:Hb2u7V4cmzORXDF0QulbVVq83T/B6AfX+64LPZS64n0
   current: SHA256:6FV5K276oVndQJv5uxtytvD/KIrimmU/SmWvEgmmdIo
   a key rotation looks exactly like an account takeover from here.
-  verify the fingerprint with them out of band, then re-run with --accept-new-key
+  check the fingerprint with them out of band, then re-run with --accept-new-key
 ```
 
 <a id="what-it-does-not-do"></a>
@@ -338,7 +338,7 @@ Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その
 |:--------|:------------|
 | `make check` | フォーマット、lint、テスト、カバレッジのゲート |
 | `make build` | [`lib/`](lib)を`dist/fusho`に連結します |
-| `make test` | `bats`の204件のテスト |
+| `make test` | `bats`の211件のテスト |
 | `make coverage` | bashcovの行カバレッジ、100%のゲート付き |
 | `make install` | 本体、manページ、補完を配置します |
 

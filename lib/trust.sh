@@ -54,10 +54,10 @@ fusho_trust_check() {
     fusho_warn "accepted new keys for '${target}'."
     return 0
   fi
-  printf 'fusho: the keys published by %s changed since you last messaged them.\n' "$target" >&2
+  fusho_say 0 "fusho: the keys published by $target changed since you last messaged them." >&2
   printf '  pinned:  %s\n' "$known" >&2
   printf '  current: %s\n' "$current" >&2
   printf '  a key rotation looks exactly like an account takeover from here.\n' >&2
-  printf '  verify the fingerprint with them out of band, then re-run with --accept-new-key\n' >&2
+  printf '  check the fingerprint with them out of band, then re-run with --accept-new-key\n' >&2
   exit 1
 }

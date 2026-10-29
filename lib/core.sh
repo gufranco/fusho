@@ -13,14 +13,52 @@ FUSHO_CLIPBOARD_COPY="${FUSHO_CLIPBOARD_COPY:-}"
 FUSHO_CLIPBOARD_PASTE="${FUSHO_CLIPBOARD_PASTE:-}"
 FUSHO_BANNER="${FUSHO_BANNER:-1}"
 FUSHO_WORKSPACE=""
+FUSHO_WIDTH=80
+
+fusho_wrap() {
+  awk -v width="$FUSHO_WIDTH" -v indent="$1" '
+    function pad(n,   s) {
+      s = ""
+      while (n-- > 0) { s = s " " }
+      return s
+    }
+    length($0) <= width { print; next }
+    {
+      match($0, /^ */)
+      n = split($0, word, " ")
+      out = substr($0, 1, RLENGTH) word[1]
+      for (i = 2; i <= n; i++) {
+        if (length(out) + 1 + length(word[i]) > width) {
+          print out
+          out = pad(indent) word[i]
+        } else {
+          out = out " " word[i]
+        }
+      }
+      print out
+    }'
+}
+
+fusho_terminal() {
+  [ "${FUSHO_TERMINAL:-}" = 1 ] || [ -t 1 ]
+}
+
+fusho_say() {
+  local text="$2"
+  if [ "${#text}" -le "$FUSHO_WIDTH" ] || ! fusho_terminal; then
+    printf '%s\n' "$text"
+    return 0
+  fi
+  printf '%s\n' "$text" | fusho_wrap "$1"
+}
 
 fusho_die() {
-  printf 'fusho: %s\n' "$1" >&2
+  fusho_say 0 "fusho: $1" >&2
   exit "${2:-1}"
 }
 
 fusho_warn() {
-  printf 'fusho: %s\n' "$1" >&2
+  fusho_say 0 "fusho: $1" >&2
 }
 
 fusho_cleanup() {

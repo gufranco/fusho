@@ -21,7 +21,7 @@
 
 </div>
 
-五個指令，204 個測試，一個 POSIX `sh` 檔案，執行時只需要 `age`。
+五個指令，211 個測試，一個 POSIX `sh` 檔案，執行時只需要 `age`。
 
 > [!NOTE]
 > **威脅模型。** fusho 令秘密不會留在聊天記錄之中：保留政策、沒有人記得設定過的備份、2031 年接手這個頻道的同事，都看不到它。它防不了鍵盤記錄程式、國家級對手，也防不了那位為求穩妥、把明文貼在加密區塊正下方的同事。這些情況寫在[它做不到的事](#what-it-does-not-do)之中，而且大多需要大得多的預算。
@@ -206,7 +206,7 @@ fusho: the keys published by alice changed since you last messaged them.
   pinned:  SHA256:Hb2u7V4cmzORXDF0QulbVVq83T/B6AfX+64LPZS64n0
   current: SHA256:6FV5K276oVndQJv5uxtytvD/KIrimmU/SmWvEgmmdIo
   a key rotation looks exactly like an account takeover from here.
-  verify the fingerprint with them out of band, then re-run with --accept-new-key
+  check the fingerprint with them out of band, then re-run with --accept-new-key
 ```
 
 <a id="what-it-does-not-do"></a>
@@ -338,7 +338,7 @@ fusho 遵循[語意化版本](https://semver.org/)。每個版本都有標籤，
 |:--------|:------------|
 | `make check` | 格式檢查、lint、測試及覆蓋率門檻 |
 | `make build` | 把 [`lib/`](lib) 合併成 `dist/fusho` |
-| `make test` | 204 個 `bats` 測試 |
+| `make test` | 211 個 `bats` 測試 |
 | `make coverage` | bashcov 行覆蓋率，門檻為 100% |
 | `make install` | 安裝主程式、man 說明頁及自動補全 |
 
