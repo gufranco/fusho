@@ -221,6 +221,18 @@ teardown_file() {
   assert_output_contains "BEGIN FUSHO MESSAGE"
 }
 
+@test "a JSON array escapes control characters, quotes and backslashes" {
+  # Arrange
+  printf '%s\n' "$(printf 'a\tb')" 'say "hi" \ now' >"${WORK}/lines"
+
+  # Act
+  run fusho_test_call fusho_json_array "${WORK}/lines"
+
+  # Assert
+  assert_status 0
+  assert_equal "${output}" '["a\u0009b","say \"hi\" \\ now"]'
+}
+
 @test "resolves the key host from the recipient suffix" {
   # Arrange
   local expected_status=0

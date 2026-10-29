@@ -42,6 +42,7 @@ fusho_emit_armor() {
 
 # shellcheck disable=SC2016
 FUSHO_AWK_FIELD='BEGIN{p=want": "} /^-----BEGIN (FUSHO|OSM) MESSAGE-----$/{s=1;b=0;next} !s{next} /^-----END (FUSHO|OSM) MESSAGE-----$/{exit} /^$/{b=1} !b&&index($0,p)==1{print substr($0,length(p)+1)}'
+FUSHO_AWK_JSON='BEGIN{for(i=1;i<32;i++)code[sprintf("%c",i)]=sprintf("\\u%04x",i)} function esc(s,  r,c,i){r="";for(i=1;i<=length(s);i++){c=substr(s,i,1);if(c=="\\")r=r"\\\\";else if(c=="\"")r=r"\\\"";else if(c in code)r=r code[c];else r=r c}return r}'
 FUSHO_AWK_BODY='/^-----BEGIN (FUSHO|OSM) MESSAGE-----$/{s=1;next} !s{next} /^-----END (FUSHO|OSM) MESSAGE-----$/{exit} b{print} /^$/{b=1}'
 
 fusho_armor_field() {
@@ -72,7 +73,7 @@ fusho_require_armor() {
 }
 
 fusho_json_array() {
-  awk 'BEGIN{printf "["} {gsub(/\\/,"\\\\"); gsub(/"/,"\\\""); printf "%s\"%s\"", (NR>1 ? "," : ""), $0} END{printf "]"}' "$1"
+  awk "${FUSHO_AWK_JSON}"' BEGIN{printf "["} {printf "%s\"%s\"", (NR>1 ? "," : ""), esc($0)} END{printf "]"}' "$1"
 }
 
 fusho_emit_json() {
@@ -82,7 +83,7 @@ fusho_emit_json() {
   fusho_ej_armor="$4"
   fusho_ej_to=$(fusho_json_array "${fusho_ej_tofile}")
   fusho_ej_keys=$(fusho_json_array "${fusho_ej_selected_fps}")
-  fusho_ej_body=$(awk '{gsub(/\\/,"\\\\"); gsub(/"/,"\\\""); printf "%s\\n", $0}' "${fusho_ej_armor}")
+  fusho_ej_body=$(awk "${FUSHO_AWK_JSON}"' {printf "%s\\n", esc($0)}' "${fusho_ej_armor}")
   printf '{"version":"%s","alg":"%s","to":%s,"keys":%s,"armor":"%s"}\n' \
     "${FUSHO_FORMAT_VERSION}" "${fusho_ej_alg}" "${fusho_ej_to}" "${fusho_ej_keys}" "${fusho_ej_body}"
 }
