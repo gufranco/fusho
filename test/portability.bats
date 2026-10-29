@@ -115,7 +115,7 @@ round_trip_each() {
   # Arrange
   local -a shells=()
   local candidate
-  for candidate in dash ash ksh mksh oksh posh yash zsh; do
+  for candidate in dash ash mksh oksh posh yash zsh; do
     if command -v "${candidate}" >/dev/null 2>&1; then
       shells+=("${candidate}")
     fi

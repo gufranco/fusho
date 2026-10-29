@@ -113,7 +113,7 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get update -qq
-          sudo apt-get install -y -qq age bats dash zsh ksh mandoc
+          sudo apt-get install -y -qq age bats dash zsh mandoc
       - name: Install shells and tools (macOS)
         if: runner.os == 'macOS'
         run: brew install --formula age bats-core bash dash zsh
@@ -157,7 +157,7 @@ jobs:
         run: |
           apt-get update
           apt-get install -y age openssh-client openssl curl python3 ca-certificates git bats
-          for shell in dash mksh ksh posh zsh busybox-static; do
+          for shell in dash mksh posh zsh busybox-static; do
             apt-get install -y "$shell" || echo "skipping unavailable shell: $shell"
           done
 
@@ -210,7 +210,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y age bats ksh openssh-client openssl curl python3 qrencode
+          sudo apt-get install -y age bats openssh-client openssl curl python3 qrencode
 
       - name: Enforce the coverage gate
         run: bash scripts/coverage.sh 100

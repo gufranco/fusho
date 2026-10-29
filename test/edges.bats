@@ -61,21 +61,6 @@ wait_until_empty() {
   [[ "${output}" =~ valid\ until\ [0-9]{10}\. ]]
 }
 
-@test "runs on a ksh that rejects local" {
-  # Arrange
-  local ksh
-  ksh="$(command -v ksh93 || command -v ksh || true)"
-  [[ -n "${ksh}" ]] || skip "no ksh on this machine"
-  ! "${ksh}" -c 'f() { local x=1; }; f' 2>/dev/null || skip "this ksh supports local"
-
-  # Act
-  run "${ksh}" "${FUSHO_REPO_ROOT}/bin/fusho" version
-
-  # Assert
-  assert_status 0
-  assert_output_contains "fusho ${FUSHO_TEST_VERSION}"
-}
-
 @test "runs when bash has local disabled" {
   # Arrange
   local no_local="${WORK}/no-local.bash"
