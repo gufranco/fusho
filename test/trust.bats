@@ -183,3 +183,44 @@ setup() {
   assert_status 0
   assert_output_contains "-rw-------"
 }
+
+@test "accepting new keys keeps the pin store private" {
+  # Arrange
+  printf 'x\n' | "${FUSHO_BIN}" send alice --no-clipboard >/dev/null 2>&1
+  fixture_publish_keys "${SERVED}" "alice" "${WORK}/home/.ssh/rotated.pub"
+  printf 'x\n' | "${FUSHO_BIN}" send alice --accept-new-key --no-clipboard >/dev/null 2>&1
+  fixture_publish_keys "${SERVED}" "alice" "${WORK}/home/.ssh/recipient.pub"
+
+  # Act
+  run ls -l "${XDG_CONFIG_HOME}/fusho/known_recipients"
+
+  # Assert
+  assert_status 0
+  assert_output_contains "-rw-------"
+}
+
+@test "a pin store that cannot be saved keeps the old pins and stops the send" {
+  # Arrange
+  printf 'x\n' | "${FUSHO_BIN}" send alice --no-clipboard >/dev/null 2>&1
+  local store="${XDG_CONFIG_HOME}/fusho/known_recipients"
+  local before
+  before="$(cat "${store}")"
+  fixture_publish_keys "${SERVED}" "alice" "${WORK}/home/.ssh/rotated.pub"
+  local shims="${WORK}/shims-${BATS_TEST_NUMBER}"
+  mkdir -p "${shims}"
+  local real_mv
+  real_mv="$(command -v mv)"
+  printf '#!/bin/sh\ncase "$*" in *known_recipients) exit 1 ;; esac\nexec %s "$@"\n' "${real_mv}" >"${shims}/mv"
+  chmod +x "${shims}/mv"
+
+  # Act
+  run env PATH="${shims}:${PATH}" bash -c "printf 'x\n' | '${FUSHO_BIN}' send alice --accept-new-key --no-clipboard"
+
+  # Assert
+  fixture_publish_keys "${SERVED}" "alice" "${WORK}/home/.ssh/recipient.pub"
+  assert_status 1
+  assert_output_contains "could not save the pinned keys for 'alice'"
+  local after
+  after="$(cat "${store}")"
+  assert_equal "${after}" "${before}"
+}

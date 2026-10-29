@@ -18,19 +18,19 @@ fusho_trust_known() {
   awk -v target="$1" '$1 == target { print $2 }' "$2" | sort | tr '\n' ' '
 }
 
-fusho_trust_record() {
-  fusho_tr_target="$1"
-  fusho_tr_fps="$2"
-  fusho_tr_store="$3"
-  awk -v target="${fusho_tr_target}" 'NF > 0 { print target" "$0 }' "${fusho_tr_fps}" >>"${fusho_tr_store}"
-}
-
-fusho_trust_forget() {
-  fusho_tf2_target="$1"
-  fusho_tf2_store="$2"
-  fusho_tf2_kept="${fusho_tf2_store}.kept"
-  awk -v target="${fusho_tf2_target}" '$1 != target' "${fusho_tf2_store}" >"${fusho_tf2_kept}"
-  mv "${fusho_tf2_kept}" "${fusho_tf2_store}"
+fusho_trust_pin() {
+  fusho_tp_target="$1"
+  fusho_tp_fps="$2"
+  fusho_tp_store="$3"
+  fusho_tp_next="${fusho_tp_store}.next"
+  if ! (
+    umask 077
+    awk -v target="${fusho_tp_target}" '$1 != target' "${fusho_tp_store}" >"${fusho_tp_next}" &&
+      awk -v target="${fusho_tp_target}" 'NF > 0 { print target" "$0 }' "${fusho_tp_fps}" >>"${fusho_tp_next}"
+  ) || ! mv -f "${fusho_tp_next}" "${fusho_tp_store}"; then
+    rm -f "${fusho_tp_next}"
+    fusho_die "could not save the pinned keys for '${fusho_tp_target}'. the earlier pins are unchanged."
+  fi
 }
 
 fusho_trust_check() {
@@ -49,7 +49,7 @@ fusho_trust_check() {
   fusho_tc_known=$(fusho_trust_known "${fusho_tc_target}" "${fusho_tc_store}")
   fusho_tc_current=$(sort "${fusho_tc_fps}" | tr '\n' ' ')
   if [ -z "${fusho_tc_known}" ]; then
-    fusho_trust_record "${fusho_tc_target}" "${fusho_tc_fps}" "${fusho_tc_store}"
+    fusho_trust_pin "${fusho_tc_target}" "${fusho_tc_fps}" "${fusho_tc_store}"
     fusho_warn "first message to '${fusho_tc_target}'. verify these fingerprints out of band:"
     while IFS= read -r fusho_tc_line; do
       if [ -n "${fusho_tc_line}" ]; then
@@ -62,8 +62,7 @@ fusho_trust_check() {
     return 0
   fi
   if [ "${fusho_tc_accept_new}" -eq 1 ]; then
-    fusho_trust_forget "${fusho_tc_target}" "${fusho_tc_store}"
-    fusho_trust_record "${fusho_tc_target}" "${fusho_tc_fps}" "${fusho_tc_store}"
+    fusho_trust_pin "${fusho_tc_target}" "${fusho_tc_fps}" "${fusho_tc_store}"
     fusho_warn "accepted new keys for '${fusho_tc_target}'."
     return 0
   fi
