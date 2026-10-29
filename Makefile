@@ -1,14 +1,15 @@
 SHELL := /bin/sh
 PREFIX ?= $(HOME)/.local
-SCRIPTS := bin/fusho lib/*.sh scripts/*.sh test/*.bats test/helpers/*.bash
+SCRIPTS := bin/fusho lib/*.sh scripts/*.sh test/*.sh test/*.bash test/*.bats
 
-.PHONY: help fmt lint test coverage check install
+.PHONY: help fmt lint test test-all coverage check install
 
 help:
 	@echo "targets:"
 	@echo "  fmt         format every script with shfmt -i 2"
 	@echo "  lint        shfmt, shellcheck and mandoc at zero findings"
-	@echo "  test        bats suites"
+	@echo "  test        bats suites under the system sh"
+	@echo "  test-all    bats suites under every installed shell"
 	@echo "  coverage    bashcov line coverage with a 100% gate"
 	@echo "  check       lint and test"
 	@echo "  install     install the tool, man page and completions under PREFIX (default ~/.local)"
@@ -18,18 +19,20 @@ fmt:
 
 lint:
 	shfmt -i 2 -d $(SCRIPTS)
-	shellcheck --norc -x -s sh -o all bin/fusho lib/*.sh scripts/toolset.sh scripts/check-names.sh scripts/set-version.sh
+	shellcheck -x -s sh -o all bin/fusho lib/*.sh scripts/toolset.sh scripts/check-names.sh scripts/set-version.sh scripts/coverage.sh test/call.sh test/run-matrix.sh
 	sh scripts/check-names.sh
-	shellcheck --severity=style --shell=bash scripts/coverage.sh
-	shellcheck --severity=style --shell=bash completions/fusho.bash
-	shellcheck --severity=style --shell=bash -e SC2154 test/*.bats test/helpers/*.bash
+	shellcheck -x -o all test/*.bash test/*.bats
+	shellcheck -s bash -o all completions/fusho.bash
 	mandoc -T lint man/fusho.1
 
 test:
-	bats --print-output-on-failure test
+	FUSHO_TEST_SHELLS=sh sh test/run-matrix.sh
+
+test-all:
+	sh test/run-matrix.sh
 
 coverage:
-	bash scripts/coverage.sh 100
+	sh scripts/coverage.sh 100
 
 check: lint test
 

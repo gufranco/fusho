@@ -218,7 +218,7 @@ jobs:
           mkdir -p interop/.ssh interop/served
           ssh-keygen -q -t ed25519 -N '' -C interop -f interop/.ssh/id_ed25519 </dev/null
           awk '{print $1" "$2}' interop/.ssh/id_ed25519.pub > interop/served/alice.keys
-          python3 test/helpers/keyserver.py interop/served > interop/port 2>/dev/null &
+          python3 test/keyserver.py interop/served > interop/port 2>/dev/null &
           for _ in $(seq 1 60); do [ -s interop/port ] && break; sleep 0.1; done
           printf 'interop secret\nacentuacao: cao cedilha\ntrailing line\n' > interop/original.txt
           FUSHO_GITHUB_BASE="http://127.0.0.1:$(cat interop/port)" HOME="$PWD/interop" \

@@ -1,0 +1,37 @@
+#!/bin/sh
+set -u
+
+tests_dir="$(cd "$(dirname "$0")" && pwd)"
+os="$(uname -s)"
+failed=0
+
+if [ -n "${FUSHO_TEST_SHELLS:-}" ]; then
+  shells="${FUSHO_TEST_SHELLS}"
+elif [ "${os}" = "Darwin" ]; then
+  brew_bin="$(brew --prefix 2>/dev/null || printf /opt/homebrew)/bin"
+  shells="/bin/sh|dash|/bin/bash|/bin/bash --posix|${brew_bin}/bash|${brew_bin}/bash --posix|/bin/zsh|${brew_bin}/zsh"
+else
+  shells="dash|bash|bash --posix|zsh|/bin/sh"
+fi
+
+if [ "$#" -eq 0 ]; then
+  set -- "${tests_dir}"
+fi
+
+old_ifs="${IFS}"
+IFS='|'
+for shell in ${shells}; do
+  IFS="${old_ifs}"
+  printf '== %s ==\n' "${shell}"
+  if ! FUSHO_TEST_SHELL="${shell}" bats --print-output-on-failure "$@"; then
+    failed=$((failed + 1))
+  fi
+  IFS='|'
+done
+IFS="${old_ifs}"
+
+if [ "${failed}" -ne 0 ]; then
+  printf '%s shell(s) failed\n' "${failed}"
+  exit 1
+fi
+printf 'every shell passed\n'

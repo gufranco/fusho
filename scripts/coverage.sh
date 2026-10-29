@@ -1,27 +1,34 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/bin/sh
+set -eu
 
-root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+root=$(cd "$(dirname "$0")/.." && pwd)
 minimum=${1:-100}
-artifact="${root}/bin/fusho"
 bash_bin=$(command -v bash)
+# shellcheck disable=SC2016
+if ! "${bash_bin}" -c '[ "${BASH_VERSINFO[0]}" -ge 4 ]' 2>/dev/null; then
+  printf 'coverage: bashcov needs bash 4 or later, and %s is older. Install a newer bash first.\n' "${bash_bin}" >&2
+  exit 1
+fi
 ruby_bin=$(command -v ruby)
 bashcov_bin="${root}/scripts/bashcov-run.rb"
+hashbang=$(printf '\043\041')
 
 rm -rf "${root}/coverage"
 mkdir -p "${root}/coverage"
 
-wrapper="${root}/coverage/fusho-instrumented"
+wrapper_dir=$(mktemp -d "${TMPDIR:-/tmp}/fusho-coverage-XXXXXX")
+trap 'rm -rf "${wrapper_dir}"' EXIT
+wrapper="${wrapper_dir}/bashcov-shell"
 {
-  printf '#!%s\n' "${bash_bin}"
-  printf 'export BUNDLE_GEMFILE=%q\n' "${root}/Gemfile"
+  printf '%s%s\n' "${hashbang}" "${bash_bin}"
+  printf 'export BUNDLE_GEMFILE="%s/Gemfile"\n' "${root}"
   # shellcheck disable=SC2016
-  printf 'exec %q -rbundler/setup %q --root %q --bash-path %q --command-name "run-$$-${RANDOM}" -- %q "$@"\n' \
-    "${ruby_bin}" "${bashcov_bin}" "${root}" "${bash_bin}" "${artifact}"
+  printf 'exec "%s" -rbundler/setup "%s" --root "%s" --bash-path "%s" --command-name "run-$$-${RANDOM}" -- "$@"\n' \
+    "${ruby_bin}" "${bashcov_bin}" "${root}" "${bash_bin}"
 } >"${wrapper}"
 chmod 0755 "${wrapper}"
 
-FUSHO_COVERAGE=1 FUSHO_BIN="${wrapper}" bats "${root}/test"
+FUSHO_COVERAGE=1 FUSHO_TEST_SHELL="${wrapper}" bats "${root}/test"
 
 cd "${root}"
 python3 scripts/coverage-gate.py '/(bin/fusho|lib/[a-z]+\.sh)\Z' "${minimum}" coverage/.resultset.json

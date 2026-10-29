@@ -1,5 +1,0 @@
-enable=all
-shell=bash
-disable=SC2250
-disable=SC2310
-disable=SC2312

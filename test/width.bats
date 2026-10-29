@@ -1,13 +1,13 @@
-load helpers/fixtures
-load helpers/assertions
+# shellcheck source=test/helpers.bash
+source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
 setup() {
   FAKES="$(mktemp -d /tmp/fusho-width.XXXXXX)"
-  FAKES="$(cd "$FAKES" && pwd -P)"
+  FAKES="$(cd "${FAKES}" && pwd -P)"
 }
 
 teardown() {
-  rm -rf "$FAKES"
+  rm -rf "${FAKES}"
 }
 
 widest_line() {
@@ -17,9 +17,9 @@ widest_line() {
 fake_sed() {
   local dir="$1" real
   real=$(command -v sed)
-  mkdir -p "$dir"
+  mkdir -p "${dir}"
   # shellcheck disable=SC2016
-  printf '#!/bin/sh\n{ set +x; } 2>/dev/null\nif [ "${1:-}" = --version ]; then printf "sed (GNU sed) 4.9\\n"; exit 0; fi\nexec "%s" "$@"\n' "$real" >"${dir}/sed"
+  printf '#!/bin/sh\n{ set +x; } 2>/dev/null\nif [ "${1:-}" = --version ]; then printf "sed (GNU sed) 4.9\\n"; exit 0; fi\nexec "%s" "$@"\n' "${real}" >"${dir}/sed"
   chmod +x "${dir}/sed"
 }
 
@@ -28,11 +28,11 @@ fake_sed() {
   local page widest
 
   # Act
-  page="$(FUSHO_TERMINAL=1 "$FUSHO_BIN" help)"
+  page="$(FUSHO_TERMINAL=1 "${FUSHO_BIN}" help)"
 
   # Assert
-  widest="$(printf '%s\n' "$page" | widest_line)"
-  [[ "$widest" -le 80 ]]
+  widest="$(printf '%s\n' "${page}" | widest_line)"
+  [[ "${widest}" -le 80 ]]
 }
 
 @test "version never prints a line wider than 80 columns" {
@@ -40,11 +40,11 @@ fake_sed() {
   local page widest
 
   # Act
-  page="$(FUSHO_TERMINAL=1 "$FUSHO_BIN" version)"
+  page="$(FUSHO_TERMINAL=1 "${FUSHO_BIN}" version)"
 
   # Assert
-  widest="$(printf '%s\n' "$page" | widest_line)"
-  [[ "$widest" -le 80 ]]
+  widest="$(printf '%s\n' "${page}" | widest_line)"
+  [[ "${widest}" -le 80 ]]
 }
 
 @test "an error longer than 80 columns wraps between words on a terminal" {
@@ -52,7 +52,7 @@ fake_sed() {
   local option="--this-option-name-is-long-enough-to-push-the-usage-hint-past-eighty"
 
   # Act
-  FUSHO_TERMINAL=1 run "$FUSHO_BIN" "$option"
+  FUSHO_TERMINAL=1 run "${FUSHO_BIN}" "${option}"
 
   # Assert
   assert_status 1
@@ -67,20 +67,33 @@ fake_sed() {
   local option="--this-option-name-is-long-enough-to-push-the-usage-hint-past-eighty"
 
   # Act
-  run "$FUSHO_BIN" "$option"
+  run "${FUSHO_BIN}" "${option}"
 
   # Assert
   assert_status 1
-  assert_equal "$output" "fusho: unknown option '${option}'. run 'fusho help' for usage."
+  assert_equal "${output}" "fusho: unknown option '${option}'. run 'fusho help' for usage."
+}
+
+@test "a word wider than 80 columns stays whole on its own line" {
+  # Arrange
+  local key="SHA256:a-fingerprint-prefix-long-enough-to-be-wider-than-eighty-columns-on-its-own"
+
+  # Act
+  FUSHO_TERMINAL=1 run fusho_test_call fusho_say 2 "fusho: no key matches ${key}"
+
+  # Assert
+  assert_status 0
+  assert_equal "${lines[0]}" "fusho: no key matches"
+  assert_equal "${lines[1]}" "  ${key}"
 }
 
 @test "a doctor row stays on one line on a terminal, however long" {
   # Arrange
   local dir="${FAKES}/a-folder-long-enough-to-pass-80"
-  fake_sed "$dir"
+  fake_sed "${dir}"
 
   # Act
-  FUSHO_TERMINAL=1 FUSHO_OS=Linux PATH="${dir}:${PATH}" run "$FUSHO_BIN" doctor
+  FUSHO_TERMINAL=1 FUSHO_OS=Linux PATH="${dir}:${PATH}" run "${FUSHO_BIN}" doctor
 
   # Assert
   assert_output_contains $'\n'"sed                ok       ${dir}/sed, gnu 4.9"$'\n'

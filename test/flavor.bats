@@ -1,31 +1,33 @@
-load helpers/fixtures
-load helpers/assertions
+# shellcheck source=test/helpers.bash
+source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
 setup() {
   FAKES="$(mktemp -d "${BATS_TMPDIR:-/tmp}/fusho-flavor.XXXXXX")"
 }
 
 teardown() {
-  rm -rf "$FAKES"
+  rm -rf "${FAKES}"
 }
 
 fake_tool() {
   local dir="$1" tool="$2" text="$3" real
-  real=$(command -v "$tool")
-  mkdir -p "$dir"
+  real=$(command -v "${tool}")
+  mkdir -p "${dir}"
   # shellcheck disable=SC2016
-  printf '#!/bin/sh\n{ set +x; } 2>/dev/null\nif [ "${1:-}" = --version ]; then printf "%%s\\n" "%s"; exit 0; fi\nexec "%s" "$@"\n' "$text" "$real" >"${dir}/${tool}"
+  printf '#!/bin/sh\n{ set +x; } 2>/dev/null\nif [ "${1:-}" = --version ]; then printf "%%s\\n" "%s"; exit 0; fi\nexec "%s" "$@"\n' "${text}" "${real}" >"${dir}/${tool}"
   chmod +x "${dir}/${tool}"
 }
 
 doctor_row() {
   local tool="$1" os="$2"
-  env PATH="${FAKES}/uutils-diffutils:${FAKES}:${PATH}" FUSHO_OS="$os" "$FUSHO_BIN" doctor | grep "^${tool} "
+  local page
+  page="$(env PATH="${FAKES}/uutils-diffutils:${FAKES}:${PATH}" FUSHO_OS="${os}" "${FUSHO_BIN}" doctor || true)"
+  printf '%s\n' "${page}" | grep "^${tool} "
 }
 
 @test "doctor names GNU sed with its version" {
   # Arrange
-  fake_tool "$FAKES" sed "sed (GNU sed) 4.9"
+  fake_tool "${FAKES}" sed "sed (GNU sed) 4.9"
 
   # Act
   run doctor_row sed Linux
@@ -36,7 +38,7 @@ doctor_row() {
 
 @test "doctor names Ubuntu's GNU coreutils as gnu" {
   # Arrange
-  fake_tool "$FAKES" tr "tr (coreutils) 9.7"
+  fake_tool "${FAKES}" tr "tr (coreutils) 9.7"
 
   # Act
   run doctor_row tr Linux
@@ -47,7 +49,7 @@ doctor_row() {
 
 @test "doctor names uutils coreutils with its version" {
   # Arrange
-  fake_tool "$FAKES" tr "tr (uutils coreutils) 0.12.0"
+  fake_tool "${FAKES}" tr "tr (uutils coreutils) 0.12.0"
 
   # Act
   run doctor_row tr Darwin
@@ -58,7 +60,7 @@ doctor_row() {
 
 @test "doctor names mawk" {
   # Arrange
-  fake_tool "$FAKES" awk "mawk 1.3.4 20260129"
+  fake_tool "${FAKES}" awk "mawk 1.3.4 20260129"
 
   # Act
   run doctor_row awk Linux
@@ -69,7 +71,7 @@ doctor_row() {
 
 @test "doctor names the BSD awk by its date stamp" {
   # Arrange
-  fake_tool "$FAKES" awk "awk version 20200816"
+  fake_tool "${FAKES}" awk "awk version 20200816"
 
   # Act
   run doctor_row awk Darwin
@@ -80,7 +82,7 @@ doctor_row() {
 
 @test "doctor names BusyBox" {
   # Arrange
-  fake_tool "$FAKES" date "BusyBox v1.36.1 (2024-06-10) multi-call binary."
+  fake_tool "${FAKES}" date "BusyBox v1.36.1 (2024-06-10) multi-call binary."
 
   # Act
   run doctor_row date Linux
@@ -91,7 +93,7 @@ doctor_row() {
 
 @test "doctor reads a tool that refuses --version on macOS as bsd" {
   # Arrange
-  fake_tool "$FAKES" date "date: illegal option -- -"
+  fake_tool "${FAKES}" date "date: illegal option -- -"
 
   # Act
   run doctor_row date Darwin
@@ -102,7 +104,7 @@ doctor_row() {
 
 @test "doctor reads a tool that refuses --version on Linux as unknown" {
   # Arrange
-  fake_tool "$FAKES" date "date: unrecognized option"
+  fake_tool "${FAKES}" date "date: unrecognized option"
 
   # Act
   run doctor_row date Linux

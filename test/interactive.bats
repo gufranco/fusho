@@ -1,22 +1,20 @@
-load helpers/fixtures
-load helpers/assertions
+# shellcheck source=test/helpers.bash
+source "${BATS_TEST_DIRNAME:-.}/helpers.bash"
 
 setup_file() {
-  load helpers/fixtures
   WORK="$(fixture_workspace)"
   XDG_CONFIG_HOME="${WORK}/config"
   SERVED="${WORK}/served"
-  mkdir -p "$SERVED" "${WORK}/home/.ssh"
+  mkdir -p "${SERVED}" "${WORK}/home/.ssh"
   fixture_generate_ed25519 "${WORK}/home/.ssh" "id_ed25519"
-  fixture_publish_keys "$SERVED" "alice" "${WORK}/home/.ssh/id_ed25519.pub"
-  keyserver_start "$SERVED"
+  fixture_publish_keys "${SERVED}" "alice" "${WORK}/home/.ssh/id_ed25519.pub"
+  keyserver_start "${SERVED}"
   export WORK SERVED FUSHO_GITHUB_BASE KEYSERVER_PID XDG_CONFIG_HOME
 }
 
 teardown_file() {
-  load helpers/fixtures
   keyserver_stop
-  rm -rf "$WORK"
+  rm -rf "${WORK}"
 }
 
 setup() {
@@ -28,7 +26,7 @@ setup() {
 answering() {
   local answers="$1"
   shift
-  printf '%b' "$answers" | "$FUSHO_BIN" "$@"
+  printf '%b' "${answers}" | "${FUSHO_BIN}" "$@"
 }
 
 @test "the menu runs doctor when asked to check this machine" {
@@ -36,7 +34,7 @@ answering() {
   local answers='4\n'
 
   # Act
-  run answering "$answers"
+  run answering "${answers}"
 
   # Assert
   assert_status 0
@@ -49,7 +47,7 @@ answering() {
   local answers='9\n'
 
   # Act
-  run answering "$answers"
+  run answering "${answers}"
 
   # Assert
   assert_status 1
@@ -61,7 +59,7 @@ answering() {
   local answers=''
 
   # Act
-  run answering "$answers"
+  run answering "${answers}"
 
   # Assert
   assert_status 1
@@ -87,7 +85,7 @@ answering() {
   local answers='\n\n\n'
 
   # Act
-  run answering "$answers" send --no-clipboard
+  run answering "${answers}" send --no-clipboard
 
   # Assert
   assert_status 1
@@ -99,7 +97,7 @@ answering() {
   local answers='alice\n'
 
   # Act
-  run answering "$answers" keys
+  run answering "${answers}" keys
 
   # Assert
   assert_status 0
@@ -112,7 +110,7 @@ answering() {
   local answers='\n\n\n'
 
   # Act
-  run answering "$answers" keys
+  run answering "${answers}" keys
 
   # Assert
   assert_status 1
@@ -125,15 +123,15 @@ answering() {
   payload="$(openssl rand -hex 16)"
   armor="${WORK}/pasted.txt"
   recovered="${WORK}/recovered.txt"
-  printf '%s\n' "$payload" | FUSHO_INTERACTIVE=0 "$FUSHO_BIN" send alice --no-clipboard >"$armor"
+  printf '%s\n' "${payload}" | FUSHO_INTERACTIVE=0 "${FUSHO_BIN}" send alice --no-clipboard >"${armor}"
 
   # Act
-  run bash -c '"$1" read <"$2" 2>"$3.err" >"$3"; status=$?; cat "$3.err"; exit "$status"' _ "$FUSHO_BIN" "$armor" "$recovered"
+  run bash -c '"$1" read <"$2" 2>"$3.err" >"$3"; status=$?; cat "$3.err"; exit "$status"' _ "${FUSHO_BIN}" "${armor}" "${recovered}"
 
   # Assert
   assert_status 0
   assert_output_contains "Paste the fusho message, then press Ctrl-D on an empty line:"
-  assert_equal "$(cat "$recovered")" "$payload"
+  assert_equal "$(cat "${recovered}" || true)" "${payload}"
 }
 
 @test "the menu sends a message when asked to send" {
@@ -148,21 +146,21 @@ answering() {
 
   # Assert
   assert_status 0
-  grep -q -- "-----BEGIN FUSHO MESSAGE-----" "$clip"
+  grep -q -- "-----BEGIN FUSHO MESSAGE-----" "${clip}"
 }
 
 @test "the menu reads a pasted message when asked to read" {
   # Arrange
   local payload armor
   payload="$(openssl rand -hex 16)"
-  armor="$(printf '%s\n' "$payload" | FUSHO_INTERACTIVE=0 "$FUSHO_BIN" send alice --no-clipboard)"
+  armor="$(printf '%s\n' "${payload}" | FUSHO_INTERACTIVE=0 "${FUSHO_BIN}" send alice --no-clipboard)"
 
   # Act
   run answering "2\n${armor}\n"
 
   # Assert
   assert_status 0
-  assert_output_contains "$payload"
+  assert_output_contains "${payload}"
 }
 
 @test "the menu lists keys when asked to" {
@@ -170,7 +168,7 @@ answering() {
   local answers='3\nalice\n'
 
   # Act
-  run answering "$answers"
+  run answering "${answers}"
 
   # Assert
   assert_status 0
@@ -183,14 +181,14 @@ answering() {
   payload="$(openssl rand -hex 16)"
   armor="${WORK}/pasted-other.txt"
   recovered="${WORK}/recovered-other.txt"
-  printf '%s\n' "$payload" | FUSHO_INTERACTIVE=0 "$FUSHO_BIN" send alice --no-clipboard >"$armor"
+  printf '%s\n' "${payload}" | FUSHO_INTERACTIVE=0 "${FUSHO_BIN}" send alice --no-clipboard >"${armor}"
   export FUSHO_CLIPBOARD_PASTE="printf unrelated-text"
 
   # Act
-  run bash -c '"$1" read <"$2" 2>"$3.err" >"$3"; status=$?; cat "$3.err"; exit "$status"' _ "$FUSHO_BIN" "$armor" "$recovered"
+  run bash -c '"$1" read <"$2" 2>"$3.err" >"$3"; status=$?; cat "$3.err"; exit "$status"' _ "${FUSHO_BIN}" "${armor}" "${recovered}"
 
   # Assert
   assert_status 0
   assert_output_contains "Paste the fusho message, then press Ctrl-D on an empty line:"
-  assert_equal "$(cat "$recovered")" "$payload"
+  assert_equal "$(cat "${recovered}" || true)" "${payload}"
 }
