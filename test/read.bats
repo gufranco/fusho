@@ -76,11 +76,15 @@ setup() {
 }
 
 @test "reports a body that is not valid base64" {
+  # Arrange
   fixture_corrupt_body "${WORK}/message" "${WORK}/corrupt"
 
+  # Act
   run "$FUSHO_BIN" read "${WORK}/corrupt"
 
+  # Assert
   assert_status 1
+  assert_output_contains "the message body is not valid base64"
   assert_output_lacks "the recovered secret"
 }
 

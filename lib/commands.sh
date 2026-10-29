@@ -365,7 +365,8 @@ fusho_read_run() {
     fusho_die "the fusho message has no key header, so fusho cannot tell which identity to use."
   fi
   fusho_rr_alg=$(fusho_armor_field "${fusho_rr_input}" "alg" | head -1)
-  if ! fusho_armor_body "${fusho_rr_input}" | tr -d '\n' | openssl base64 -d -A -out "${fusho_rr_ciphertext}" 2>/dev/null; then
+  fusho_armor_body "${fusho_rr_input}" | tr -d '\n' >"${fusho_rr_work}/body"
+  if ! fusho_base64_valid "${fusho_rr_work}/body" || ! openssl base64 -d -A -in "${fusho_rr_work}/body" -out "${fusho_rr_ciphertext}" 2>/dev/null; then
     fusho_die "the message body is not valid base64. the paste may be incomplete."
   fi
   fusho_rr_from=$(fusho_armor_field "${fusho_rr_input}" "from" | head -1)

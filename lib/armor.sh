@@ -48,6 +48,15 @@ fusho_armor_field() {
   awk -v want="$2" "${FUSHO_AWK_FIELD}" "$1"
 }
 
+fusho_base64_valid() {
+  [ -s "$1" ] || return 1
+  if LC_ALL=C grep -q '[^A-Za-z0-9+/=]' "$1"; then
+    return 1
+  fi
+  fusho_bv_size=$(wc -c <"$1" | tr -d ' ')
+  [ $((fusho_bv_size % 4)) -eq 0 ]
+}
+
 fusho_armor_body() {
   awk "${FUSHO_AWK_BODY}" "$1"
 }
