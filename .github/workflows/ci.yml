@@ -9,9 +9,6 @@ on:
 permissions:
   contents: read
 
-env:
-  SHFMT_VERSION: v3.13.1
-
 jobs:
   lint:
     concurrency:
@@ -24,8 +21,12 @@ jobs:
 
       - name: Install shfmt
         run: |
-          go install "mvdan.cc/sh/v3/cmd/shfmt@${SHFMT_VERSION}"
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+          set -euo pipefail
+          gh release download v3.14.1 --repo mvdan/sh --pattern 'shfmt_v3.14.1_linux_amd64' --output shfmt
+          echo "76e77641faa025814b77f153b29796b8e6fa2fca03e0c76a691608b86c7ea7bf  shfmt" | sha256sum -c -
+          sudo install -m 755 shfmt /usr/local/bin/shfmt
+        env:
+          GH_TOKEN: ${{ github.token }}
 
       - name: Build the artifact
         run: bash build.sh
