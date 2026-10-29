@@ -27,7 +27,7 @@ fusho_main() {
   keys) fusho_cmd_keys "$@" ;;
   keys-url) fusho_keys_url "${1:-}" ;;
   doctor) fusho_cmd_doctor ;;
-  version | --version | -V | -v) fusho_cmd_version ;;
+  version | --version | -V) fusho_cmd_version ;;
   help | --help | -h) fusho_usage ;;
   "")
     if fusho_interactive; then

@@ -85,6 +85,18 @@ setup() {
   assert_output_contains "fusho ${FUSHO_TEST_VERSION}"
 }
 
+@test "-v is not a spelling of version" {
+  # Arrange
+  local flag=-v
+
+  # Act
+  run "${FUSHO_BIN}" "${flag}"
+
+  # Assert
+  assert_status 1
+  assert_equal "${output}" "fusho: unknown option '-v'. run 'fusho help' for usage."
+}
+
 @test "an unknown top-level option is reported as an option" {
   # Arrange
   local option=--frobnicate
