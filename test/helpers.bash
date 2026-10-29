@@ -192,3 +192,26 @@ fusho_test_call() {
   read -r -a shell_words <<<"${FUSHO_TEST_SHELL:-sh}"
   "${shell_words[@]}" "${FUSHO_TESTS_DIR}/call.sh" "$@"
 }
+
+fusho_test_matches_golden() {
+  local name="$1"
+  local actual="$2"
+  local os golden normalized
+  os="$(uname -s)"
+  golden="${FUSHO_TESTS_DIR}/golden/${name}.${os}.txt"
+  normalized="${actual//"${WORK}"/WORK}"
+  normalized="$(awk '
+    /^-----BEGIN FUSHO MESSAGE-----$/ { block = 1; body = 0; print; next }
+    /^-----END FUSHO MESSAGE-----$/ { block = 0; print; next }
+    block && body { if (!shown) print "BODY"; shown = 1; next }
+    block && /^$/ { body = 1; shown = 0; print; next }
+    block && /^sig: / { print "sig: SIGNATURE"; next }
+    { print }
+  ' <<<"${normalized}")"
+  normalized="$(sed -E -e 's#SHA256:[A-Za-z0-9+/]{43}#SHA256:FINGERPRINT#g' -e 's#[0-9]{10}#EPOCH#g' <<<"${normalized}")"
+  if [[ "${FUSHO_TEST_RECORD:-}" == "1" ]]; then
+    mkdir -p "${FUSHO_TESTS_DIR}/golden"
+    printf '%s\n' "${normalized}" >"${golden}"
+  fi
+  diff <(printf '%s\n' "${normalized}") "${golden}"
+}

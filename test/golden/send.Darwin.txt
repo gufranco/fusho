@@ -1,0 +1,12 @@
+fusho: first message to 'alice'. verify these fingerprints out of band:
+  SHA256:FINGERPRINT
+-----BEGIN FUSHO MESSAGE-----
+v: 1
+alg: age
+from: carol
+sig: SIGNATURE
+to: alice
+key: SHA256:FINGERPRINT
+
+BODY
+-----END FUSHO MESSAGE-----

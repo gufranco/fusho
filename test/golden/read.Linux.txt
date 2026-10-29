@@ -1,0 +1,2 @@
+fusho: signature verified against a key published by 'carol'.
+meet at noon
