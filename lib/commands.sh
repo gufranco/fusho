@@ -107,8 +107,7 @@ fusho_cmd_send() {
       ;;
     *) ;;
     esac
-    fusho_cs_targets="${fusho_cs_target}
-${fusho_cs_targets}"
+    fusho_cs_targets="${fusho_cs_target}${FUSHO_NL}${fusho_cs_targets}"
   fi
   if [ -z "${fusho_cs_targets}" ] && [ -z "${fusho_cs_keyfiles}" ] && fusho_interactive; then
     fusho_cs_target=$(fusho_prompt_required "Send to, a GitHub user or user@host" "no recipient given. run 'fusho help' for usage.") || exit 1
@@ -194,11 +193,9 @@ fusho_send_run() {
   fusho_emit_armor "${fusho_sr_alg}" "${fusho_sr_tofile}" "${fusho_sr_selected_fps}" "${fusho_sr_ciphertext}" "${fusho_sr_sign_as}" "${fusho_sr_signature}" "${fusho_sr_encoding}" "${fusho_sr_expires}" >"${fusho_sr_armor}"
   fusho_sr_delivery="${fusho_sr_work}/delivery"
   if [ "${fusho_sr_no_banner}" -eq 0 ] && fusho_banner_enabled; then
-    {
-      fusho_emit_banner
-      printf '\n'
-      cat "${fusho_sr_armor}"
-    } >"${fusho_sr_delivery}"
+    fusho_emit_banner >"${fusho_sr_delivery}"
+    printf '\n' >>"${fusho_sr_delivery}"
+    cat "${fusho_sr_armor}" >>"${fusho_sr_delivery}"
   else
     cat "${fusho_sr_armor}" >"${fusho_sr_delivery}"
   fi
