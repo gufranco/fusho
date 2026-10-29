@@ -254,15 +254,15 @@ setup() {
   assert_output_contains "too large for a QR code"
 }
 
-@test "names the problem on a shell without local" {
+@test "runs on ksh, which has no local" {
   if ! command -v ksh >/dev/null 2>&1; then
     skip "ksh is not installed on this machine"
   fi
 
   run ksh "${FUSHO_REPO_ROOT}/bin/fusho" version
 
-  assert_status 1
-  assert_output_contains 'does not support "local"'
+  assert_status 0
+  assert_output_contains "fusho $(fixture_expected_version)"
 }
 
 @test "the banner tells a newcomer what the block is and how to open it" {

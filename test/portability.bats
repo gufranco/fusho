@@ -85,7 +85,7 @@ round_trip_under() {
 
 @test "round trips under every other shell present on this machine" {
   local dir found=0
-  for candidate in dash ash mksh oksh posh yash zsh busybox; do
+  for candidate in dash ash ksh mksh oksh posh yash zsh busybox; do
     command -v "$candidate" >/dev/null 2>&1 || continue
     dir="${WORK}/shell-${candidate}"
     mkdir -p "$dir"

@@ -18,7 +18,7 @@ fmt:
 
 lint:
 	shfmt -i 2 -d $(SCRIPTS)
-	shellcheck --severity=style --shell=sh -e SC3043 -x bin/fusho lib/*.sh scripts/toolset.sh scripts/check-names.sh scripts/set-version.sh
+	shellcheck --norc -x -s sh -o all bin/fusho lib/*.sh scripts/toolset.sh scripts/check-names.sh scripts/set-version.sh
 	sh scripts/check-names.sh
 	shellcheck --severity=style --shell=bash scripts/coverage.sh
 	shellcheck --severity=style --shell=bash completions/fusho.bash

@@ -305,7 +305,7 @@ fusho is POSIX `sh`. Each row below passed a full encrypt-and-decrypt round trip
 |:------|:-------|
 | `dash`, `busybox ash`, `posh` | Supported |
 | `bash` 3.2 and 5.x, the system's `zsh` and Homebrew's, `mksh` | Supported |
-| `ksh93` | Not supported. It lacks `local`, so fusho exits with a message naming the problem |
+| `ksh93` | Supported |
 
 | System | Status |
 |:-------|:-------|

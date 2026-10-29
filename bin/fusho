@@ -30,8 +30,6 @@ FUSHO_LIB="$(cd "${fusho_self%/*}/../lib" && pwd)" || exit 1
 # shellcheck source=SCRIPTDIR/../lib/main.sh
 . "${FUSHO_LIB}/main.sh"
 
-fusho_require_local
-
 trap fusho_cleanup EXIT
 trap 'fusho_cleanup; exit 130' INT
 trap 'fusho_cleanup; exit 143' TERM

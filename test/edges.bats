@@ -63,7 +63,7 @@ wait_until_empty() {
   [[ "$output" =~ valid\ until\ [0-9]{10}\. ]]
 }
 
-@test "explains which shell to use when local is unsupported" {
+@test "runs on a ksh that rejects local" {
   # Arrange
   local ksh
   ksh="$(command -v ksh93 || command -v ksh || true)"
@@ -74,12 +74,11 @@ wait_until_empty() {
   run "$ksh" "${FUSHO_REPO_ROOT}/bin/fusho" version
 
   # Assert
-  assert_status 1
-  assert_output_contains 'this shell does not support "local"'
-  assert_output_contains "run fusho with /bin/sh instead"
+  assert_status 0
+  assert_output_contains "fusho $(fixture_expected_version)"
 }
 
-@test "explains which shell to use when bash has local disabled" {
+@test "runs when bash has local disabled" {
   # Arrange
   local no_local="${WORK}/no-local.bash"
   printf 'enable -n local\n' >"$no_local"
@@ -90,8 +89,8 @@ wait_until_empty() {
   run env BASH_ENV="$no_local" "${runner[@]}" version
 
   # Assert
-  assert_status 1
-  assert_output_contains 'this shell does not support "local"'
+  assert_status 0
+  assert_output_contains "fusho $(fixture_expected_version)"
 }
 
 @test "fails clearly when the RSA key size cannot be read" {

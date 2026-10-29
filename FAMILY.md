@@ -178,8 +178,8 @@ Being adopted (as of 2026-10-28): fusho is moving to this layout, and `shfmt`, t
 
 ## The state of this repository
 
-fusho runs from [`bin/fusho`](bin/fusho), which sources the modules in `lib/`, like the rest of the family. It still runs on `local` as the one extension to POSIX `sh` and stops with a clear message on a shell without it.
+fusho runs from [`bin/fusho`](bin/fusho), which sources the modules in `lib/`, like the rest of the family. It is POSIX `sh` with no extensions, so it also runs on ksh93.
 
 Beyond the shared contract, fusho keeps `-v` as a second spelling of `--version`, prints `--json` for scripts, and reads its tuning from `FUSHO_*` environment variables.
 
-Gaps against the family standard (as of 2026-10-29): `local` and unbraced variables instead of function-prefixed globals and `${name}`, and the test layout (`test/helpers/` instead of `helpers.bash`, `call.sh` and `run-matrix.sh`).
+Gaps against the family standard (as of 2026-10-29): the test layout (`test/helpers/` instead of `helpers.bash`, `call.sh` and `run-matrix.sh`).
