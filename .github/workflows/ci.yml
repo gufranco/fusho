@@ -9,15 +9,19 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint:
-    concurrency:
-      group: ci-${{ github.ref }}-lint-${{ strategy.job-index }}
-      cancel-in-progress: true
     name: lint and format
     runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@v7.0.1
 
       - name: Install shfmt
         run: |
@@ -52,92 +56,101 @@ jobs:
         uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7  # v2.2.0
 
   test:
-    concurrency:
-      group: ci-${{ github.ref }}-test-${{ strategy.job-index }}
-      cancel-in-progress: true
-    name: test on ${{ matrix.os }}, ${{ matrix.toolset }} tools
-    runs-on: ${{ matrix.os }}
+    name: test (${{ matrix.runner }}, ${{ matrix.shell }}, ${{ matrix.toolset }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: ubuntu-26.04
+          - runner: ubuntu-26.04
+            shell: dash
             toolset: native
-          - os: ubuntu-26.04
+          - runner: ubuntu-26.04
+            shell: zsh
+            toolset: native
+          - runner: ubuntu-26.04
+            shell: bash
+            toolset: native
+          - runner: ubuntu-26.04
+            shell: dash
             toolset: gnu
-          - os: ubuntu-26.04
+          - runner: ubuntu-26.04
+            shell: dash
             toolset: uutils
-          - os: macos-26
+          - runner: macos-26
+            shell: /bin/sh
             toolset: native
-          - os: macos-26
+          - runner: macos-26
+            shell: /bin/bash
+            toolset: native
+          - runner: macos-26
+            shell: /bin/zsh
+            toolset: native
+          - runner: macos-26
+            shell: /bin/sh
             toolset: homebrew
-          - os: macos-26
+          - runner: macos-26
+            shell: /opt/homebrew/bin/bash
+            toolset: homebrew
+          - runner: macos-26
+            shell: /opt/homebrew/bin/zsh
+            toolset: homebrew
+          - runner: macos-26
+            shell: /bin/sh
             toolset: uutils
-          - os: macos-26-intel
-            toolset: native
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-
-      - name: Install dependencies on Linux
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install shells and tools (Linux)
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y age bats ksh
-
-      - name: Install dependencies on macOS
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq age bats dash zsh ksh mandoc
+      - name: Install shells and tools (macOS)
         if: runner.os == 'macOS'
-        run: brew install --formula age bats-core bash zsh
-
-      - name: Report the environment
-        run: |
-          bash --version | head -1
-          age --version
-          openssl version
-          bats --version
-
-      - name: Install the GNU toolset on Linux
+        run: brew install --formula age bats-core bash dash zsh
+      - name: Install the GNU toolset (Linux)
         if: runner.os == 'Linux' && matrix.toolset == 'gnu'
-        run: sudo apt-get install -y gnu-coreutils gawk
-
-      - name: Install the uutils toolset on Linux
+        run: sudo apt-get install -y -qq gnu-coreutils gawk
+      - name: Install the uutils toolset (Linux)
         if: runner.os == 'Linux' && matrix.toolset == 'uutils'
-        run: sudo apt-get install -y rust-coreutils
-
-      - name: Install the Homebrew toolset on macOS
+        run: sudo apt-get install -y -qq rust-coreutils
+      - name: Install the Homebrew toolset (macOS)
         if: runner.os == 'macOS' && matrix.toolset == 'homebrew'
         run: brew install --formula coreutils findutils gnu-sed gawk grep diffutils openssl@3 curl openssh gzip
-
-      - name: Install the uutils toolset on macOS
+      - name: Install the uutils toolset (macOS)
         if: runner.os == 'macOS' && matrix.toolset == 'uutils'
         run: brew install --formula uutils-coreutils uutils-diffutils uutils-findutils
-
       - name: Put the ${{ matrix.toolset }} toolset first on PATH
         env:
           TOOLSET: ${{ matrix.toolset }}
         run: sh scripts/toolset.sh "${TOOLSET}" "${RUNNER_TEMP}/toolset" >> "${GITHUB_PATH}"
-
-      - name: Show which builds the run uses
-        run: |
-          for tool in bash zsh openssl curl ssh-keygen gzip; do
-            printf '%-10s %s\n' "${tool}" "$(command -v "${tool}" || printf missing)"
-          done
-          openssl version
-          curl --version | head -1
-
+      - name: Show which shell runs the suites
+        if: contains(matrix.shell, 'bash') || contains(matrix.shell, 'zsh')
+        env:
+          SHELL_UNDER_TEST: ${{ matrix.shell }}
+        run: '"${SHELL_UNDER_TEST}" --version | head -n 1'
       - name: Show which tools the run uses
-        run: ./bin/fusho doctor
-
-      - name: Run the suite
-        run: bats --print-output-on-failure test
+        run: sh bin/fusho doctor
+      - name: Run the suites under ${{ matrix.shell }}
+        env:
+          FUSHO_TEST_SHELLS: ${{ matrix.shell }}
+        run: sh test/run-matrix.sh
 
   shells:
-    concurrency:
-      group: ci-${{ github.ref }}-shells-${{ strategy.job-index }}
-      cancel-in-progress: true
     name: posix shell conformance
     runs-on: ubuntu-26.04
     container: debian:stable-slim
     steps:
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
       - name: Install shells and dependencies
         run: |
           apt-get update
@@ -146,23 +159,23 @@ jobs:
             apt-get install -y "$shell" || echo "skipping unavailable shell: $shell"
           done
 
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/checkout@v7.0.1
 
       - name: Round trip under every installed shell dialect
         run: bats --print-output-on-failure test/portability.bats
 
   musl:
-    concurrency:
-      group: ci-${{ github.ref }}-musl-${{ strategy.job-index }}
-      cancel-in-progress: true
     name: musl and busybox
     runs-on: ubuntu-26.04
     container: alpine:latest
     steps:
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
       - name: Install dependencies
         run: apk add --no-cache age openssh-keygen openssl curl python3 bash bats git
 
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: actions/checkout@v7.0.1
 
       - name: Prove it runs where bash is absent
         run: |
@@ -180,13 +193,13 @@ jobs:
           bats --print-output-on-failure test
 
   coverage:
-    concurrency:
-      group: ci-${{ github.ref }}-coverage-${{ strategy.job-index }}
-      cancel-in-progress: true
     name: coverage gate
     runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@v7.0.1
 
       - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f  # v1.335.0
         with:
@@ -201,13 +214,13 @@ jobs:
         run: bash scripts/coverage.sh 100
 
   interop-encrypt:
-    concurrency:
-      group: ci-${{ github.ref }}-interop-encrypt-${{ strategy.job-index }}
-      cancel-in-progress: true
     name: encrypt on macOS
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@v7.0.1
 
       - name: Install dependencies
         run: brew install age
@@ -225,7 +238,7 @@ jobs:
             ./bin/fusho send alice --no-clipboard < interop/original.txt > interop/message.txt
           shasum -a 256 interop/original.txt
 
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
+      - uses: actions/upload-artifact@v7.0.2
         with:
           name: interop-bundle
           path: |
@@ -236,21 +249,21 @@ jobs:
           retention-days: 1
 
   interop-decrypt:
-    concurrency:
-      group: ci-${{ github.ref }}-interop-decrypt-${{ strategy.job-index }}
-      cancel-in-progress: true
     name: decrypt on Linux
     runs-on: ubuntu-26.04
     needs: interop-encrypt
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: step-security/harden-runner@46b06cea07f9e64621fdf066ba77ac6915163d43  # v2.22.3
+        with:
+          egress-policy: audit
+      - uses: actions/checkout@v7.0.1
 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y age
 
-      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
+      - uses: actions/download-artifact@v8.0.2
         with:
           name: interop-bundle
           path: interop
@@ -265,58 +278,3 @@ jobs:
           sha256sum recovered.txt interop/original.txt
           cmp recovered.txt interop/original.txt
           echo "macOS to Linux round trip is byte identical"
-
-  release:
-    concurrency:
-      group: release-${{ github.ref }}
-      cancel-in-progress: false
-    name: release
-    runs-on: ubuntu-26.04
-    needs: [lint, test, shells, musl, coverage, interop-decrypt]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    outputs:
-      tag: ${{ steps.published.outputs.tag }}
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-      id-token: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
-        with:
-          node-version: lts/*
-
-      - name: Install release tooling
-        run: |
-          set -euo pipefail
-          corepack enable
-          pnpm install --frozen-lockfile
-
-      - name: Audit the release tooling
-        run: pnpm audit --audit-level high
-
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm exec semantic-release
-
-      - name: Record the tag a release just published
-        id: published
-        run: echo "tag=$(git tag --points-at HEAD | head -n 1)" >> "${GITHUB_OUTPUT}"
-
-  formula:
-    concurrency:
-      group: formula-${{ github.ref }}
-      cancel-in-progress: false
-    name: formula
-    needs: release
-    if: needs.release.outputs.tag != ''
-    uses: ./.github/workflows/formula.yml
-    with:
-      tag: ${{ needs.release.outputs.tag }}
-    secrets: inherit
