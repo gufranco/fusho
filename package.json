@@ -4,6 +4,7 @@
   "private": true,
   "description": "Release tooling only. The shipped artifact is dist/fusho, a shell script with no Node dependency.",
   "license": "MIT",
+  "packageManager": "pnpm@12.15.0",
   "devDependencies": {
     "@semantic-release/changelog": "7.0.0",
     "@semantic-release/exec": "7.1.0",

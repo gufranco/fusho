@@ -20,7 +20,7 @@ jobs:
     name: lint and format
     runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Install shfmt
         run: |
@@ -44,7 +44,7 @@ jobs:
         run: shellcheck --severity=style --shell=bash -e SC2154 test/*.bats test/helpers/*.bash
 
       - name: Lint the workflows
-        uses: raven-actions/actionlint@v2
+        uses: raven-actions/actionlint@3d39aea434753780c3b3d4a1a31c854b4dbf49d7  # v2.2.0
 
   test:
     concurrency:
@@ -71,7 +71,7 @@ jobs:
           - os: macos-26-intel
             toolset: native
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Install dependencies on Linux
         if: runner.os == 'Linux'
@@ -144,7 +144,7 @@ jobs:
             apt-get install -y "$shell" || echo "skipping unavailable shell: $shell"
           done
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Build the artifact
         run: bash build.sh
@@ -163,7 +163,7 @@ jobs:
       - name: Install dependencies
         run: apk add --no-cache age openssh-keygen openssl curl python3 bash bats git
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Build the artifact
         run: bash build.sh
@@ -190,7 +190,7 @@ jobs:
     name: coverage gate
     runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f  # v1.335.0
         with:
@@ -214,7 +214,7 @@ jobs:
     name: encrypt on macOS
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Install dependencies
         run: brew install age
@@ -235,7 +235,7 @@ jobs:
             ./dist/fusho send alice --no-clipboard < interop/original.txt > interop/message.txt
           shasum -a 256 interop/original.txt
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2
         with:
           name: interop-bundle
           path: |
@@ -253,7 +253,7 @@ jobs:
     runs-on: ubuntu-26.04
     needs: interop-encrypt
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
       - name: Install dependencies
         run: |
@@ -263,7 +263,7 @@ jobs:
       - name: Build the artifact
         run: bash build.sh
 
-      - uses: actions/download-artifact@v8
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333  # v8.0.2
         with:
           name: interop-bundle
           path: interop
@@ -295,20 +295,23 @@ jobs:
       pull-requests: write
       id-token: write
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
         with:
           node-version: lts/*
 
       - name: Install release tooling
-        run: npm clean-install
+        run: |
+          set -euo pipefail
+          corepack enable
+          pnpm install --frozen-lockfile
 
-      - name: Verify provenance of the release tooling
-        run: npm audit signatures
+      - name: Audit the release tooling
+        run: pnpm audit --audit-level high
 
       - name: Build the artifact
         run: bash build.sh
@@ -316,7 +319,7 @@ jobs:
       - name: Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
+        run: pnpm exec semantic-release
 
       - name: Record the tag a release just published
         id: published
