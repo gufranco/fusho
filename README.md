@@ -319,18 +319,20 @@ Every run works on the five toolsets in common use: Linux with GNU or uutils cor
 
 | Command | Description |
 |:--------|:------------|
-| `make check` | Lint and test |
-| `make test` | The 211 `bats` tests |
-| `make coverage` | bashcov line coverage, gated at 100% |
-| `make install` | Install the tool, man page and completions under `PREFIX`, `~/.local` by default |
+| `make fmt` | Formats every script with shfmt |
+| `make lint` | shfmt, ShellCheck on every script, test and completion, and mandoc on the man page |
+| `make test` | The `bats` tests under the system `sh` |
+| `make test-all` | The same tests under every shell, both builds of bash and zsh included on macOS |
+| `make test-linux` | The same tests in an Ubuntu container |
+| `make coverage` | bashcov line coverage on this Mac and in the Ubuntu container, merged, with the 100% gate CI enforces |
 
-[`bin/fusho`](bin/fusho) sources the 11 modules in [`lib/`](lib); there is no build step, so what people install is the code in this repository. Tests run against real `age` and `openssl` with generated keys, and [`test/helpers/keyserver.py`](test/helpers/keyserver.py) serves the key endpoint locally, so `curl` sees real HTTP status codes.
+[`bin/fusho`](bin/fusho) sources the 11 modules in [`lib/`](lib); there is no build step, so what people install is the code in this repository. Tests run against real `age` and `openssl` with generated keys, and [`test/keyserver.py`](test/keyserver.py) serves the key endpoint locally, so `curl` sees real HTTP status codes. Once CI passes on a push to `main`, semantic-release runs: a `feat` or `fix` commit publishes a release, updates `FUSHO_VERSION` in [`lib/core.sh`](lib/core.sh) and the CHANGELOG, and bumps the Homebrew formula.
 
 
 | Convention | Source |
 |:-----------|:-------|
 | Commit format | [Conventional Commits](https://www.conventionalcommits.org/) |
-| Shell linting | [`.shellcheckrc`](.shellcheckrc), `enable=all` at zero warnings |
+| Shell linting | `shellcheck -o all` in `make lint`, at zero warnings |
 | Formatting | `shfmt -i 2` |
 | Bash floor | 3.2, so macOS `/bin/bash` is a supported target |
 

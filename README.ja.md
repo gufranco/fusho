@@ -331,18 +331,20 @@ Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その
 
 | コマンド | 説明 |
 |:--------|:------------|
-| `make check` | lintとテスト |
-| `make test` | `bats`の211件のテスト |
-| `make coverage` | bashcovの行カバレッジ、100%のゲート付き |
-| `make install` | 本体、manページ、補完を`PREFIX`の下に入れます。既定は`~/.local`です |
+| `make fmt` | すべてのスクリプトを shfmt で整形 |
+| `make lint` | shfmt、すべてのスクリプト、テスト、補完に ShellCheck、man ページに mandoc |
+| `make test` | システムの `sh` で `bats` テスト |
+| `make test-all` | すべてのシェルで同じテスト。macOS では bash と zsh の両方の版を含みます |
+| `make test-linux` | Ubuntu コンテナで同じテスト |
+| `make coverage` | この Mac と Ubuntu コンテナでの bashcov の行カバレッジを合算し、CI が強制する 100% のゲート |
 
-[`bin/fusho`](bin/fusho)は[`lib/`](lib)にある11個のモジュールを読み込みます。ビルドの手順はなく、インストールされるのはこのリポジトリのコードそのものです。テストは生成した鍵で実際の`age`と`openssl`を動かし、[`test/helpers/keyserver.py`](test/helpers/keyserver.py)が鍵のエンドポイントをローカルで提供するので、`curl`は本物のHTTPステータスコードを受け取ります。
+[`bin/fusho`](bin/fusho)は[`lib/`](lib)にある11個のモジュールを読み込みます。ビルドの手順はなく、インストールされるのはこのリポジトリのコードそのものです。テストは生成した鍵で実際の`age`と`openssl`を動かし、[`test/keyserver.py`](test/keyserver.py)が鍵のエンドポイントをローカルで提供するので、`curl`は本物のHTTPステータスコードを受け取ります。`main` への push で CI が通ると semantic-release が動き、`feat` か `fix` のコミットでリリースを公開し、[`lib/core.sh`](lib/core.sh) の `FUSHO_VERSION` と CHANGELOG を更新し、Homebrew の formula を更新します。
 
 
 | 規約 | 出典 |
 |:-----------|:-------|
 | コミット形式 | [Conventional Commits](https://www.conventionalcommits.org/) |
-| シェルのlint | [`.shellcheckrc`](.shellcheckrc)、`enable=all`で警告ゼロ |
+| シェルのlint | `make lint` の `shellcheck -o all`、警告ゼロ |
 | フォーマット | `shfmt -i 2` |
 | Bashの最低バージョン | 3.2。macOSの`/bin/bash`を対象にしています |
 

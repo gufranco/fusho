@@ -331,18 +331,20 @@ fusho 是 POSIX `sh`。下表每一行都通过了完整的加密与解密往返
 
 | 命令 | 说明 |
 |:--------|:------------|
-| `make check` | lint 和测试 |
-| `make test` | 211 个 `bats` 测试 |
-| `make coverage` | bashcov 行覆盖率，门槛为 100% |
-| `make install` | 把主程序、man 手册和补全安装到 `PREFIX` 下，默认为 `~/.local` |
+| `make fmt` | 用 shfmt 格式化所有脚本 |
+| `make lint` | 运行 shfmt，对所有脚本、测试和补全运行 ShellCheck，用 mandoc 检查 man 手册 |
+| `make test` | 在系统 `sh` 下运行 `bats` 测试 |
+| `make test-all` | 在每种 shell 下运行同样的测试，macOS 上包括 bash 和 zsh 的两个版本 |
+| `make test-linux` | 在 Ubuntu 容器中运行同样的测试 |
+| `make coverage` | 合并这台 Mac 与 Ubuntu 容器中的 bashcov 行覆盖率，以及 CI 强制的 100% 门槛 |
 
-[`bin/fusho`](bin/fusho) 加载 [`lib/`](lib) 中的 11 个模块；没有构建步骤，安装的就是这个仓库里的代码。测试使用生成的密钥运行真实的 `age` 和 `openssl`，[`test/helpers/keyserver.py`](test/helpers/keyserver.py) 在本地提供公钥接口，所以 `curl` 看到的是真实的 HTTP 状态码。
+[`bin/fusho`](bin/fusho) 加载 [`lib/`](lib) 中的 11 个模块；没有构建步骤，安装的就是这个仓库里的代码。测试使用生成的密钥运行真实的 `age` 和 `openssl`，[`test/keyserver.py`](test/keyserver.py) 在本地提供公钥接口，所以 `curl` 看到的是真实的 HTTP 状态码。推送到 `main` 且 CI 通过后会运行 semantic-release：`feat` 或 `fix` 提交会发布新版本，更新 [`lib/core.sh`](lib/core.sh) 里的 `FUSHO_VERSION` 和 CHANGELOG，并更新 Homebrew formula。
 
 
 | 约定 | 来源 |
 |:-----------|:-------|
 | 提交格式 | [Conventional Commits](https://www.conventionalcommits.org/) |
-| Shell lint | [`.shellcheckrc`](.shellcheckrc)，`enable=all` 且零警告 |
+| Shell lint | `make lint` 中的 `shellcheck -o all`，且零警告 |
 | 格式化 | `shfmt -i 2` |
 | Bash 最低版本 | 3.2，以支持 macOS 的 `/bin/bash` |
 
