@@ -13,7 +13,8 @@ Guidance for anyone, human or agent, changing fusho. What fusho is and how to us
 | [`man/fusho.1`](man/fusho.1) | The man page |
 | [`completions/`](completions) | bash, zsh and fish completions |
 | [`test/`](test) | The `bats` suite, its helpers, the golden transcripts, the shell matrix runner, the Linux container script, a local key server and a terminal shim |
-| [`scripts/`](scripts) | Coverage, the coverage gate, the Linux coverage run, the name check, the toolset helper and the release version stamp |
+| [`scripts/`](scripts) | Coverage, the coverage gate, the Linux coverage run and the name check, which `make` runs |
+| [`.github/scripts/`](.github/scripts) | The toolset helper and the release version stamp, which only CI and the release run |
 | [`specs/`](specs) | Behaviour specs |
 
 ## Names
