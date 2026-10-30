@@ -5,8 +5,10 @@ FUSHO_REPO_ROOT="$(cd "${FUSHO_TESTS_DIR}/.." && pwd)"
 FUSHO_BIN="${BATS_RUN_TMPDIR:-${TMPDIR:-/tmp}}/fusho-under-test"
 read -r -a fusho_shell_words <<<"${FUSHO_TEST_SHELL:-sh}"
 fusho_shell_words[0]="$(command -v "${fusho_shell_words[0]}")"
-printf '#!/bin/sh\nexec %s %q "$@"\n' "${fusho_shell_words[*]}" "${FUSHO_REPO_ROOT}/bin/fusho" >"${FUSHO_BIN}"
-chmod +x "${FUSHO_BIN}"
+fusho_bin_next="$(mktemp "${FUSHO_BIN}.XXXXXX")"
+printf '#!/bin/sh\nexec %s %q "$@"\n' "${fusho_shell_words[*]}" "${FUSHO_REPO_ROOT}/bin/fusho" >"${fusho_bin_next}"
+chmod +x "${fusho_bin_next}"
+mv -f "${fusho_bin_next}" "${FUSHO_BIN}"
 export FUSHO_TESTS_DIR FUSHO_REPO_ROOT FUSHO_BIN
 
 fixture_workspace() {
