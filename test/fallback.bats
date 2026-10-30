@@ -64,6 +64,25 @@ setup() {
   assert_files_identical "${WORK}/original" "${WORK}/recovered"
 }
 
+@test "names openssl when it cannot encrypt the message" {
+  # Arrange
+  local expected_status=1
+  local sandbox real
+  sandbox="$(sandbox_path_excluding "${BATS_TEST_TMPDIR:?}/bin-failing-openssl" age)"
+  real="$(command -v openssl)"
+  rm -f "${sandbox}/openssl"
+  printf '#!/bin/sh\ncase " $* " in\n*" -encrypt "*) exit 1 ;;\n*) exec %q "$@" ;;\nesac\n' "${real}" >"${sandbox}/openssl"
+  chmod +x "${sandbox}/openssl"
+
+  # Act
+  run env PATH="${sandbox}" HOME="${WORK}/home" bash -c \
+    "printf 'small secret\n' | '${FUSHO_BIN}' send rsauser --no-clipboard"
+
+  # Assert
+  assert_status "${expected_status}"
+  assert_output_contains "openssl failed to encrypt the message."
+}
+
 @test "refuses an Ed25519 recipient when age is absent" {
   # Arrange
   local expected_status=1
