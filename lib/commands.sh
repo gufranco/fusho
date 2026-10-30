@@ -227,7 +227,6 @@ fusho_collect_recipients() {
   fusho_cr_keyfile=""
   fusho_cr_raw=""
   fusho_cr_one=""
-  fusho_cr_count=""
   : >"${fusho_cr_supported}"
   : >"${fusho_cr_tofile}"
   printf '%s' "${fusho_cr_targets}" | while IFS= read -r fusho_cr_target; do
@@ -249,10 +248,6 @@ fusho_collect_recipients() {
     printf '%s\n' "$(basename "${fusho_cr_keyfile}")" >>"${fusho_cr_tofile}"
   done
   if [ ! -s "${fusho_cr_supported}" ]; then
-    fusho_die "no usable recipient key was collected."
-  fi
-  fusho_cr_count=$(wc -l <"${fusho_cr_supported}" | tr -d ' ')
-  if [ "${fusho_cr_count}" -eq 0 ]; then
     fusho_die "no usable recipient key was collected."
   fi
 }

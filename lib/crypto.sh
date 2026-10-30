@@ -47,8 +47,7 @@ fusho_encrypt_openssl() {
   if [ "${fusho_eo_size}" -gt "${fusho_eo_capacity}" ]; then
     fusho_die "message is ${fusho_eo_size} bytes but this RSA key can carry only ${fusho_eo_capacity}. install age to remove the limit."
   fi
-  if ! openssl pkeyutl -encrypt -pubin -inkey "${fusho_eo_pem}" \
-    -pkeyopt rsa_padding_mode:oaep -in "${fusho_eo_plaintext}" -out "${fusho_eo_ciphertext}" 2>/dev/null; then
+  if ! openssl pkeyutl -encrypt -pubin -inkey "${fusho_eo_pem}" -pkeyopt rsa_padding_mode:oaep -in "${fusho_eo_plaintext}" -out "${fusho_eo_ciphertext}" 2>/dev/null; then
     fusho_die "openssl failed to encrypt the message."
   fi
 }
@@ -63,8 +62,7 @@ fusho_decrypt_age() {
 fusho_decrypt_openssl() {
   fusho_do_identity="$1"
   fusho_do_ciphertext="$2"
-  if ! openssl pkeyutl -decrypt -inkey "${fusho_do_identity}" \
-    -pkeyopt rsa_padding_mode:oaep -in "${fusho_do_ciphertext}" 2>/dev/null; then
+  if ! openssl pkeyutl -decrypt -inkey "${fusho_do_identity}" -pkeyopt rsa_padding_mode:oaep -in "${fusho_do_ciphertext}" 2>/dev/null; then
     fusho_die "decryption failed. if your private key begins with 'BEGIN OPENSSH PRIVATE KEY', convert it with: ssh-keygen -p -m PEM -f ${fusho_do_identity}"
   fi
 }
