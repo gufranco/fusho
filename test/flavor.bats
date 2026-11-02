@@ -91,6 +91,31 @@ doctor_row() {
   assert_output_contains "${FAKES}/date, busybox 1.36.1"
 }
 
+@test "doctor names BusyBox that names itself after its error line" {
+  # Arrange
+  local text
+  text="$(printf "date: unrecognized option '--version'\nBusyBox v1.37.0 (Ubuntu 1:1.37.0-7ubuntu1) multi-call binary.")"
+  fake_tool "${FAKES}" date "${text}"
+
+  # Act
+  run doctor_row date Linux
+
+  # Assert
+  assert_output_contains "${FAKES}/date, busybox 1.37.0"
+}
+
+@test "doctor names BusyBox sed, which says it is not GNU sed" {
+  # Arrange
+  fake_tool "${FAKES}" sed "This is not GNU sed version 4.0"
+
+  # Act
+  run doctor_row sed Linux
+
+  # Assert
+  assert_output_contains "${FAKES}/sed, busybox"
+  [[ "${output}" != *"busybox 4.0"* ]]
+}
+
 @test "doctor reads a tool that refuses --version on macOS as bsd" {
   # Arrange
   fake_tool "${FAKES}" date "date: illegal option -- -"

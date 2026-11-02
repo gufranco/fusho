@@ -441,6 +441,15 @@ fusho_flavor_version() {
   }'
 }
 
+fusho_tool_line() {
+  fusho_tl_line=""
+  fusho_tl_line=$(printf '%s\n' "$1" | awk '/BusyBox|This is not GNU/ { print; exit }')
+  if [ -z "${fusho_tl_line}" ]; then
+    fusho_tl_line=$(printf '%s\n' "$1" | sed -n '1p')
+  fi
+  printf '%s\n' "${fusho_tl_line}"
+}
+
 fusho_tool_flavor() {
   fusho_tf_raw=""
   fusho_tf_text=""
@@ -448,13 +457,17 @@ fusho_tool_flavor() {
   fusho_tf_name=""
   fusho_tf_os=""
   fusho_tf_raw=$("$1" --version 2>&1 </dev/null) || true
-  fusho_tf_text=$(printf '%s\n' "${fusho_tf_raw}" | sed -n '1p')
+  fusho_tf_text=$(fusho_tool_line "${fusho_tf_raw}")
   fusho_tf_version=$(fusho_flavor_version "${fusho_tf_text}")
   fusho_tf_os=${FUSHO_OS:-}
   [ -n "${fusho_tf_os}" ] || fusho_tf_os=$(uname -s)
   case "${fusho_tf_text}" in
   *uutils*) fusho_tf_name=uutils ;;
   *BusyBox*) fusho_tf_name=busybox ;;
+  *"This is not GNU"*)
+    fusho_tf_name=busybox
+    fusho_tf_version=""
+    ;;
   *GNU* | *GLIBC* | *"(coreutils)"* | *"(diffutils)"*) fusho_tf_name=gnu ;;
   *mawk*) fusho_tf_name=mawk ;;
   *"awk version"* | *"(Darwin)"*) fusho_tf_name=bsd ;;
