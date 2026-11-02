@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/gufranco/fusho/compare/v3.0.0...v3.0.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* read BusyBox from any line of its answer ([4aa68db](https://github.com/gufranco/fusho/commit/4aa68db28aca9f2dfb6f357a5f1e735a52a2f4be))
+
 # [3.0.0](https://github.com/gufranco/fusho/compare/v2.4.0...v3.0.0) (2026-10-29)
 
 
