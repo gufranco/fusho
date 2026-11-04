@@ -40,7 +40,6 @@ fusho_trust_check() {
   fusho_tc_store=""
   fusho_tc_known=""
   fusho_tc_current=""
-  fusho_tc_line=""
   fusho_tc_store=$(fusho_trust_store)
   if [ ! -f "${fusho_tc_store}" ]; then
     : >"${fusho_tc_store}"
@@ -50,12 +49,7 @@ fusho_trust_check() {
   fusho_tc_current=$(sort "${fusho_tc_fps}" | tr '\n' ' ')
   if [ -z "${fusho_tc_known}" ]; then
     fusho_trust_pin "${fusho_tc_target}" "${fusho_tc_fps}" "${fusho_tc_store}"
-    fusho_warn "first message to '${fusho_tc_target}'. verify these fingerprints out of band:"
-    while IFS= read -r fusho_tc_line; do
-      if [ -n "${fusho_tc_line}" ]; then
-        printf '  %s\n' "${fusho_tc_line}" >&2
-      fi
-    done <"${fusho_tc_fps}"
+    fusho_trust_show_new "${fusho_tc_target}" "${fusho_tc_fps}"
     return 0
   fi
   if [ "${fusho_tc_known}" = "${fusho_tc_current}" ]; then
@@ -66,9 +60,36 @@ fusho_trust_check() {
     fusho_warn "accepted new keys for '${fusho_tc_target}'."
     return 0
   fi
-  fusho_say 0 "fusho: the keys published by ${fusho_tc_target} changed since you last messaged them." >&2
-  printf '  pinned:  %s\n' "${fusho_tc_known}" >&2
-  printf '  current: %s\n' "${fusho_tc_current}" >&2
+  fusho_trust_refuse "${fusho_tc_target}" "${fusho_tc_known}" "${fusho_tc_current}"
+}
+
+fusho_trust_show_new() {
+  fusho_tsn_line=""
+  fusho_warn "first message to '$1'. verify these fingerprints out of band:"
+  if fusho_ui_err; then
+    {
+      printf 'Fingerprint\n'
+      grep -v '^$' "$2"
+    } | fusho_ui_table >&2
+    return 0
+  fi
+  while IFS= read -r fusho_tsn_line; do
+    if [ -n "${fusho_tsn_line}" ]; then
+      printf '  %s\n' "${fusho_tsn_line}" >&2
+    fi
+  done <"$2"
+}
+
+fusho_trust_refuse() {
+  if fusho_ui_err; then
+    fusho_ui_danger "The keys published by $1 changed since you last messaged them." \
+      "pinned:  $2" "current: $3" "A key rotation looks exactly like an account takeover from here." \
+      "Check the fingerprint with them out of band, then re-run with --accept-new-key."
+    exit 1
+  fi
+  fusho_say 0 "fusho: the keys published by $1 changed since you last messaged them." >&2
+  printf '  pinned:  %s\n' "$2" >&2
+  printf '  current: %s\n' "$3" >&2
   printf '  a key rotation looks exactly like an account takeover from here.\n' >&2
   printf '  check the fingerprint with them out of band, then re-run with --accept-new-key\n' >&2
   exit 1

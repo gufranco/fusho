@@ -19,7 +19,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-Five commands, 211 tests, 11 POSIX `sh` modules, and no runtime dependency beyond `age`.
+Five commands, 300 tests, 12 POSIX `sh` modules, and no runtime dependency beyond `age` and `gum`.
 
 > [!NOTE]
 > **Threat model.** fusho keeps a secret out of chat history: the retention policy, the backup nobody remembers configuring, the colleague who inherits the channel in 2031. It does not protect against a keylogger, a nation-state, or the coworker who pastes the plaintext right under the encrypted block "just in case". Those are covered in [what it does not do](#what-it-does-not-do), and mostly by a much larger budget.
@@ -27,6 +27,10 @@ Five commands, 211 tests, 11 POSIX `sh` modules, and no runtime dependency beyon
 `fusho` is 封書, Japanese for a sealed letter: addressed to one person, opened only by them.
 
 ---
+
+<p align="center">
+  <img src="screens/hero.gif" alt="fusho running in a terminal, from the first prompt to the result" width="800">
+</p>
 
 ```console
 $ fusho send --no-banner alice 'database password: correct-horse-battery-staple'
@@ -62,6 +66,7 @@ Above `BEGIN`, the block carries a short note telling a first-time recipient wha
 | POSIX `sh` | The tool itself | Preinstalled everywhere. `bash` is not required |
 | `curl`, `ssh-keygen`, `openssl` | Key fetch, fingerprints, base64 | Preinstalled on macOS and Linux |
 | [`age`](https://github.com/FiloSottile/age) | The encryption engine | `brew install age` or `apt install age`. Installed automatically by the Homebrew formula |
+| [`gum`](https://github.com/charmbracelet/gum) | The terminal interface: menu, prompts, tables and colours | `brew install gum`. Installed automatically by the Homebrew formula |
 | `qrencode` | Optional, only for `--qr` | `brew install qrencode` or `apt install qrencode` |
 
 > [!IMPORTANT]
@@ -85,6 +90,7 @@ make install
 
 ```console
 $ fusho doctor
+gum                ok       /opt/homebrew/bin/gum, 2.0.2
 age                ok       /opt/homebrew/bin/age, v1.3.2
 curl               ok       /usr/bin/curl
 ssh-keygen         ok       /usr/bin/ssh-keygen
@@ -123,6 +129,7 @@ identities         ok       2 usable key pair(s) under ~/.ssh
 | `--qr` | Print the message as a QR code |
 | `--no-banner` | Omit the note above the block |
 | `--no-clipboard` | Do not copy the result to the clipboard |
+| `--theme <name>` | Colours of the terminal interface |
 
 ```bash
 printf 'the secret' | fusho send alice          # stdin keeps it out of the process list
@@ -136,6 +143,14 @@ fusho read                                      # with nothing piped, reads the 
 
 > [!TIP]
 > Pipe the secret on stdin instead of passing it as an argument. Every user on the machine can see an argument in the process list.
+
+### Themes
+
+On a terminal with `gum` installed, fusho draws its menu, prompts, tables and messages with gum; in a pipe or a script the output stays plain text. `--theme`, else `FUSHO_THEME`, else `KODOUGU_THEME` picks the colours, the last one shared by every kodougu tool: `kodougu` (default), `catppuccin-mocha`, `catppuccin-latte`, `dracula`, `nord`, `gruvbox`, `tokyo-night` or `mono`. `KODOUGU_ACCENT=#RRGGBB` replaces only the accent, and `NO_COLOR` turns colour off.
+
+```bash
+export KODOUGU_THEME=catppuccin-mocha
+```
 
 ### Key hosts
 
@@ -315,6 +330,41 @@ fusho is POSIX `sh`. Each row below passed a full encrypt-and-decrypt round trip
 
 Every run works on the five toolsets in common use: Linux with GNU or uutils coreutils, and macOS with the tools it ships, Homebrew's newer builds of them, or Homebrew's uutils tools. Every tool macOS ships that Homebrew also builds newer, from bash and zsh to openssl, curl, ssh-keygen and gzip, is tested in both builds. CI runs the whole suite on each, and `fusho doctor` names the flavor and version of every core tool, such as `gnu 9.7`, `uutils 0.12.0` or `bsd 20200816`, so a bug report says which tools ran.
 
+<a id="screens"></a>
+
+## Screens
+
+<details>
+<summary>Every screen, recorded from a real run with <code>make screens</code></summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="fusho: The menu"><br><sub>The menu</sub></td>
+<td width="50%" valign="top"><img src="screens/recipient.png" alt="fusho: A first message shows the key to verify"><br><sub>A first message shows the key to verify</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/keys.png" alt="fusho: The keys someone publishes"><br><sub>The keys someone publishes</sub></td>
+<td width="50%" valign="top"><img src="screens/read.png" alt="fusho: A message opened"><br><sub>A message opened</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/refused.png" alt="fusho: Keys that changed since the last message"><br><sub>Keys that changed since the last message</sub></td>
+<td width="50%" valign="top"><img src="screens/paste.png" alt="fusho: Pasting a message to open it"><br><sub>Pasting a message to open it</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/error.png" alt="fusho: An error"><br><sub>An error</sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="fusho: doctor checks every tool it needs"><br><sub>doctor checks every tool it needs</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="fusho: The version badge in six themes"><br><sub>The version badge in six themes</sub></td>
+<td width="50%" valign="top"><img src="screens/help.png" alt="fusho: The help page"><br><sub>The help page</sub></td>
+</tr>
+</table>
+
+</details>
+
+<a id="development"></a>
+
 ## Development
 
 | Command | Description |
@@ -325,6 +375,7 @@ Every run works on the five toolsets in common use: Linux with GNU or uutils cor
 | `make test-all` | The same tests under every shell, both builds of bash and zsh included on macOS |
 | `make test-linux` | The same tests in an Ubuntu container |
 | `make coverage` | bashcov line coverage on this Mac and in the Ubuntu container, merged, with the 100% gate CI enforces |
+| `make screens` | Record the README screens from the real tool with VHS, on macOS |
 
 [`bin/fusho`](bin/fusho) sources the 11 modules in [`lib/`](lib); there is no build step, so what people install is the code in this repository. Tests run against real `age` and `openssl` with generated keys, and [`test/keyserver.py`](test/keyserver.py) serves the key endpoint locally, so `curl` sees real HTTP status codes. Once CI passes on a push to `main`, semantic-release runs: a `feat` or `fix` commit publishes a release, updates `FUSHO_VERSION` in [`lib/core.sh`](lib/core.sh) and the CHANGELOG, and bumps the Homebrew formula.
 

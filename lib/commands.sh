@@ -96,7 +96,7 @@ fusho_cmd_send() {
       *) ;;
       esac
     fi
-    if [ -z "${fusho_cs_target}" ] && [ -z "${fusho_cs_targets}" ]; then fusho_cs_target=$1; else fusho_cs_message=$1; fi
+    if [ -z "${fusho_cs_target}" ] && [ -z "${fusho_cs_targets}" ] && [ -z "${fusho_cs_keyfiles}" ]; then fusho_cs_target=$1; else fusho_cs_message=$1; fi
     shift
   done
   if [ -n "${fusho_cs_target}" ]; then
@@ -110,6 +110,7 @@ fusho_cmd_send() {
     fusho_cs_targets="${fusho_cs_target}${FUSHO_NL}${fusho_cs_targets}"
   fi
   if [ -z "${fusho_cs_targets}" ] && [ -z "${fusho_cs_keyfiles}" ] && fusho_interactive; then
+    fusho_ui_titled "Send a message"
     fusho_cs_target=$(fusho_prompt_required "Send to, a GitHub user or user@host" "no recipient given. run 'fusho help' for usage.") || exit 1
     fusho_cs_targets="${fusho_cs_target}
 "
@@ -206,6 +207,9 @@ fusho_send_run() {
   else
     cat "${fusho_sr_delivery}"
   fi
+  if fusho_ui_err; then
+    fusho_send_badges "${fusho_sr_alg}" "${fusho_sr_sign_as}" "${fusho_sr_expires}"
+  fi
   if [ "${fusho_sr_no_clipboard}" -eq 0 ]; then
     if fusho_sr_copier=$(fusho_clipboard_copy "${fusho_sr_delivery}"); then
       fusho_warn "copied to the clipboard with ${fusho_sr_copier}."
@@ -214,6 +218,21 @@ fusho_send_run() {
       fusho_warn "no clipboard tool found. copy the block above manually."
     fi
   fi
+}
+
+fusho_send_badges() {
+  fusho_sb_engine=$(printf '%s' "$1" | tr '[:lower:]' '[:upper:]')
+  fusho_sb_line=$(fusho_ui_badge "${FUSHO_UI_OK}" "ENCRYPTED WITH ${fusho_sb_engine}")
+  if [ -n "$2" ]; then
+    fusho_sb_part=$(fusho_ui_badge "${FUSHO_UI_ACCENT}" "SIGNED AS $2")
+    fusho_sb_line=$(fusho_gum join --horizontal "${fusho_sb_line}" " " "${fusho_sb_part}")
+  fi
+  if [ -n "$3" ]; then
+    fusho_sb_until=$(fusho_format_stamp "$3")
+    fusho_sb_part=$(fusho_ui_chip "expires ${fusho_sb_until}")
+    fusho_sb_line=$(fusho_gum join --horizontal "${fusho_sb_line}" " " "${fusho_sb_part}")
+  fi
+  printf '\n%s\n\n' "${fusho_sb_line}" >&2
 }
 
 fusho_collect_recipients() {
@@ -233,7 +252,7 @@ fusho_collect_recipients() {
     if [ -z "${fusho_cr_target}" ]; then continue; fi
     fusho_cr_raw="${fusho_cr_work}/raw-$(printf '%s' "${fusho_cr_target}" | tr -c 'a-zA-Z0-9' '_')"
     fusho_cr_one="${fusho_cr_raw}.supported"
-    fusho_fetch_keys "${fusho_cr_target}" "${fusho_cr_raw}"
+    fusho_fetch_shown "${fusho_cr_target}" "${fusho_cr_raw}"
     fusho_supported_keys "${fusho_cr_raw}" >"${fusho_cr_one}"
     fusho_require_keys "${fusho_cr_target}" "${fusho_cr_raw}" "${fusho_cr_one}"
     fusho_fingerprints "${fusho_cr_one}" >"${fusho_cr_one}.fps"
@@ -342,6 +361,9 @@ fusho_read_run() {
     if fusho_clipboard_paste >"${fusho_rr_input}.clipboard" 2>/dev/null && fusho_has_armor "${fusho_rr_input}.clipboard"; then
       tr -d '\r' <"${fusho_rr_input}.clipboard" >"${fusho_rr_input}"
       fusho_warn "reading the message from the clipboard."
+    elif [ "${fusho_rr_from_clipboard}" -eq 0 ] && fusho_ui_prompts; then
+      fusho_ui_write "Paste the fusho message" "Enter opens it, Ctrl+J starts a new line" >"${fusho_rr_input}.typed" || exit 130
+      tr -d '\r' <"${fusho_rr_input}.typed" >"${fusho_rr_input}"
     elif [ "${fusho_rr_from_clipboard}" -eq 0 ] && fusho_interactive; then
       printf '%s\n' "Paste the fusho message, then press Ctrl-D on an empty line:" >&2
       tr -d '\r' >"${fusho_rr_input}"
@@ -408,6 +430,7 @@ fusho_cmd_keys() {
   fusho_ck_raw=""
   fusho_ck_supported=""
   if [ -z "${fusho_ck_user}" ] && fusho_interactive; then
+    fusho_ui_titled "List someone's keys"
     fusho_ck_user=$(fusho_prompt_required "Whose keys, a GitHub user or user@host" "no user given. run 'fusho help' for usage.") || exit 1
   fi
   if [ -z "${fusho_ck_user}" ]; then
@@ -417,17 +440,53 @@ fusho_cmd_keys() {
   fusho_ck_work="${FUSHO_WORKSPACE}"
   fusho_ck_raw="${fusho_ck_work}/raw.keys"
   fusho_ck_supported="${fusho_ck_work}/supported.keys"
-  fusho_fetch_keys "${fusho_ck_user}" "${fusho_ck_raw}"
+  fusho_fetch_shown "${fusho_ck_user}" "${fusho_ck_raw}"
   fusho_supported_keys "${fusho_ck_raw}" >"${fusho_ck_supported}"
   fusho_require_keys "${fusho_ck_user}" "${fusho_ck_raw}" "${fusho_ck_supported}"
+  if fusho_ui_out; then
+    {
+      printf 'Type\tBits\tFingerprint\n'
+      ssh-keygen -lf "${fusho_ck_supported}" | awk '{type=$NF; gsub(/[()]/, "", type); printf "%s\t%s\t%s\n", type, $1, $2}'
+    } | fusho_ui_table
+    return 0
+  fi
   ssh-keygen -lf "${fusho_ck_supported}" | awk '{type=$NF; gsub(/[()]/, "", type); printf "%-10s %s %s bits\n", type, $2, $1}'
+}
+
+fusho_fetch_shown() {
+  if ! fusho_ui_err; then
+    fusho_fetch_keys "$1" "$2"
+    return
+  fi
+  fusho_ui_spin "Fetching the keys of $1" "$2.log" fusho_fetch_keys "$1" "$2"
 }
 
 fusho_doctor_line() {
   fusho_dl_label="$1"
   fusho_dl_state="$2"
   fusho_dl_detail="$3"
+  if fusho_ui_out; then
+    case "${fusho_dl_state}" in
+    ok) fusho_dl_state="@ok:ok" ;;
+    warn) fusho_dl_state="@warn:warn" ;;
+    *) fusho_dl_state="@bad:${fusho_dl_state}" ;;
+    esac
+    FUSHO_DOCTOR_ROWS="${FUSHO_DOCTOR_ROWS}${fusho_dl_label}	${fusho_dl_state}	${fusho_dl_detail}${FUSHO_NL}"
+    return 0
+  fi
   printf '%-18s %-8s %s\n' "${fusho_dl_label}" "${fusho_dl_state}" "${fusho_dl_detail}"
+}
+
+fusho_doctor_report() {
+  if ! fusho_ui_out; then
+    return 0
+  fi
+  printf 'Tool\tState\tDetail\n%s' "${FUSHO_DOCTOR_ROWS}" | fusho_ui_table
+  if [ "$1" -gt 0 ]; then
+    fusho_ui_log ERROR "$1 required tool(s) missing. install them and run fusho doctor again."
+    return 0
+  fi
+  fusho_ui_done "Ready. Every tool fusho needs is here."
 }
 
 fusho_flavor_version() {
@@ -502,6 +561,11 @@ fusho_cmd_doctor() {
   fusho_cd_flavor=""
   fusho_cd_note=""
   fusho_cd_tool=""
+  if fusho_have gum; then
+    fusho_cd_note=$(fusho_flavor_version "$(gum --version 2>/dev/null || true)")
+  fi
+  fusho_doctor_tool gum "install with: brew install gum, or see https://github.com/charmbracelet/gum" "${fusho_cd_note}" || fusho_cd_failures=$((fusho_cd_failures + 1))
+  fusho_cd_note=""
   if fusho_have age; then
     fusho_cd_note=$(age --version 2>/dev/null || true)
   fi
@@ -524,6 +588,7 @@ fusho_cmd_doctor() {
   esac
   fusho_doctor_tool openssl "install openssl" "${fusho_cd_note}" || fusho_cd_failures=$((fusho_cd_failures + 1))
   fusho_doctor_identities
+  fusho_doctor_report "${fusho_cd_failures}"
   if [ "${fusho_cd_failures}" -gt 0 ]; then
     exit 1
   fi
@@ -551,10 +616,24 @@ fusho_cmd_version() {
     fusho_cv_engine="age"
   fi
   fusho_cv_version=$(fusho_version)
+  if fusho_ui_out; then
+    fusho_cv_badge=$(fusho_ui_badge "${FUSHO_UI_ACCENT}" "fusho ${fusho_cv_version}")
+    fusho_cv_chip=$(fusho_ui_chip "engine ${fusho_cv_engine}")
+    fusho_gum join --horizontal "${fusho_cv_badge}" " " "${fusho_cv_chip}"
+    return 0
+  fi
   printf 'fusho %s\nengine: %s\n' "${fusho_cv_version}" "${fusho_cv_engine}"
 }
 
 fusho_usage() {
+  if fusho_ui_out; then
+    fusho_usage_text | fusho_ui_markdown | fusho_gum format --theme "${FUSHO_UI_HELP}"
+    return 0
+  fi
+  fusho_usage_text
+}
+
+fusho_usage_text() {
   cat <<'USAGE'
 fusho - send encrypted messages through any chat, using GitHub SSH keys
 
@@ -586,6 +665,7 @@ options:
   --require-signature refuse a message that carries no signature
   --ignore-expiry     open a message the sender marked as expired
   --no-clipboard      do not copy the result to the clipboard
+  --theme <name>      colours of the terminal interface, see notes
 
 hosts:
   github is the default. gitlab, codeberg and sourcehut are known, and any
@@ -599,6 +679,12 @@ notes:
 
   Passing the message as an argument makes it visible to other users of this
   machine through the process list. Piping it on stdin avoids that.
+
+  On a terminal with gum installed, fusho draws its menu, prompts and tables
+  with gum. --theme, else FUSHO_THEME, else KODOUGU_THEME picks the colours:
+  kodougu, catppuccin-mocha, catppuccin-latte, dracula, nord, gruvbox,
+  tokyo-night or mono. KODOUGU_ACCENT=#RRGGBB replaces only the accent, and
+  NO_COLOR turns colour off.
 
 examples:
   fusho send alice 'database password: correct-horse'

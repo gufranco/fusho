@@ -6,12 +6,16 @@ _fusho() {
   cur="${COMP_WORDS[COMP_CWORD]}"
   prev="${COMP_WORDS[COMP_CWORD - 1]}"
   commands="send read keys doctor version help"
-  send_opts="--to --keys-file --key --json --sign --accept-new-key --qr --expires --no-banner --no-clipboard"
-  read_opts="--identity --identity-command --clipboard --require-signature --ignore-expiry"
+  send_opts="--to --keys-file --key --json --sign --accept-new-key --qr --expires --no-banner --no-clipboard --theme"
+  read_opts="--identity --identity-command --clipboard --require-signature --ignore-expiry --theme"
 
   case "${prev}" in
   --keys-file | --identity)
     COMPREPLY=($(compgen -f -- "${cur}"))
+    return
+    ;;
+  --theme)
+    COMPREPLY=($(compgen -W "kodougu catppuccin-mocha catppuccin-latte dracula nord gruvbox tokyo-night mono" -- "${cur}"))
     return
     ;;
   *) ;;

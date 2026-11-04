@@ -19,7 +19,7 @@
 
 </div>
 
-五个命令，211 个测试，11 个 POSIX `sh` 模块，运行时只依赖 `age`。
+五个命令，299 个测试，12 个 POSIX `sh` 模块，运行时只依赖 `age` 和 `gum`。
 
 > [!NOTE]
 > **威胁模型。** fusho 让秘密不留在聊天记录里：保留策略、没人记得配置过的备份、2031 年接手这个频道的同事，都看不到它。它防不了键盘记录器、国家级对手，也防不了那位为了以防万一、把明文贴在加密块正下方的同事。这些情况写在[它做不到的事](#what-it-does-not-do)里，而且大多需要大得多的预算。
@@ -27,6 +27,10 @@
 `fusho` 来自日语的封書一词，意为封好的信：写给一个人，只有那个人能拆开。
 
 ---
+
+<p align="center">
+  <img src="screens/hero.gif" alt="在终端中运行的 fusho：从第一个输入到结果" width="800">
+</p>
 
 ```console
 $ fusho send --no-banner alice 'database password: correct-horse-battery-staple'
@@ -64,6 +68,7 @@ database password: correct-horse-battery-staple
 | POSIX `sh` | 工具本身 | 各系统均已预装。不需要 `bash` |
 | `curl`、`ssh-keygen`、`openssl` | 获取公钥、指纹、base64 | macOS 和 Linux 已预装 |
 | [`age`](https://github.com/FiloSottile/age) | 加密引擎 | `brew install age` 或 `apt install age`。Homebrew formula 会自动安装 |
+| [`gum`](https://github.com/charmbracelet/gum) | 终端界面：菜单、输入、表格和配色 | `brew install gum`。Homebrew formula 会自动安装 |
 | `qrencode` | 可选，仅用于 `--qr` | `brew install qrencode` 或 `apt install qrencode` |
 
 > [!IMPORTANT]
@@ -87,6 +92,7 @@ make install
 
 ```console
 $ fusho doctor
+gum                ok       /opt/homebrew/bin/gum, 2.0.2
 age                ok       /opt/homebrew/bin/age, v1.3.2
 curl               ok       /usr/bin/curl
 ssh-keygen         ok       /usr/bin/ssh-keygen
@@ -125,6 +131,7 @@ identities         ok       2 usable key pair(s) under ~/.ssh
 | `--qr` | 以二维码输出消息 |
 | `--no-banner` | 省略消息块上方的说明 |
 | `--no-clipboard` | 不把结果复制到剪贴板 |
+| `--theme <name>` | 终端界面的配色 |
 
 ```bash
 printf 'the secret' | fusho send alice          # stdin keeps it out of the process list
@@ -138,6 +145,14 @@ fusho read                                      # with nothing piped, reads the 
 
 > [!TIP]
 > 请通过标准输入传入秘密，而不是作为参数。机器上的每个用户都能在进程列表中看到参数。
+
+### 主题
+
+在装有 `gum` 的终端里，fusho 用 gum 绘制菜单、输入、表格和消息；在管道或脚本中，输出仍是纯文本。配色依次由 `--theme`、`FUSHO_THEME`、`KODOUGU_THEME` 决定，最后一个由所有 kodougu 工具共用：`kodougu`（默认）、`catppuccin-mocha`、`catppuccin-latte`、`dracula`、`nord`、`gruvbox`、`tokyo-night` 或 `mono`。`KODOUGU_ACCENT=#RRGGBB` 只替换强调色，`NO_COLOR` 关闭颜色。
+
+```bash
+export KODOUGU_THEME=catppuccin-mocha
+```
 
 ### 公钥托管平台
 
@@ -325,6 +340,39 @@ fusho 是 POSIX `sh`。下表每一行都通过了完整的加密与解密往返
 
 它能在五种常用工具集上运行：Linux 上的 GNU 或 uutils coreutils，以及 macOS 自带的工具、Homebrew 中更新的版本或 Homebrew 的 uutils 工具。macOS 自带而 Homebrew 有更新版本的工具，从 bash 和 zsh 到 openssl、curl、ssh-keygen 和 gzip，两个版本都会测试。CI 在每种工具集上运行全部测试，`fusho doctor` 会列出每个核心工具的类型和版本，例如 `gnu 9.7`、`uutils 0.12.0` 或 `bsd 20200816`，让错误报告说明用的是哪些工具。
 
+<a id="screens"></a>
+
+## 界面
+
+<details>
+<summary>全部界面，均由 <code>make screens</code> 录自真实运行</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="fusho: 菜单"><br><sub>菜单</sub></td>
+<td width="50%" valign="top"><img src="screens/recipient.png" alt="fusho: 第一条消息显示要核对的密钥"><br><sub>第一条消息显示要核对的密钥</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/keys.png" alt="fusho: 某人公开的密钥"><br><sub>某人公开的密钥</sub></td>
+<td width="50%" valign="top"><img src="screens/read.png" alt="fusho: 打开的消息"><br><sub>打开的消息</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/refused.png" alt="fusho: 自上一条消息以来变更的密钥"><br><sub>自上一条消息以来变更的密钥</sub></td>
+<td width="50%" valign="top"><img src="screens/paste.png" alt="fusho: 粘贴要打开的消息"><br><sub>粘贴要打开的消息</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/error.png" alt="fusho: 错误"><br><sub>错误</sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="fusho: doctor 检查所需的每个工具"><br><sub>doctor 检查所需的每个工具</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="fusho: 六种主题下的版本标记"><br><sub>六种主题下的版本标记</sub></td>
+<td width="50%" valign="top"><img src="screens/help.png" alt="fusho: 帮助页"><br><sub>帮助页</sub></td>
+</tr>
+</table>
+
+</details>
+
 <a id="development"></a>
 
 ## 开发
@@ -337,6 +385,7 @@ fusho 是 POSIX `sh`。下表每一行都通过了完整的加密与解密往返
 | `make test-all` | 在每种 shell 下运行同样的测试，macOS 上包括 bash 和 zsh 的两个版本 |
 | `make test-linux` | 在 Ubuntu 容器中运行同样的测试 |
 | `make coverage` | 合并这台 Mac 与 Ubuntu 容器中的 bashcov 行覆盖率，以及 CI 强制的 100% 门槛 |
+| `make screens` | 在 macOS 上用 VHS 从真实工具录制 README 的界面 |
 
 [`bin/fusho`](bin/fusho) 加载 [`lib/`](lib) 中的 11 个模块；没有构建步骤，安装的就是这个仓库里的代码。测试使用生成的密钥运行真实的 `age` 和 `openssl`，[`test/keyserver.py`](test/keyserver.py) 在本地提供公钥接口，所以 `curl` 看到的是真实的 HTTP 状态码。推送到 `main` 且 CI 通过后会运行 semantic-release：`feat` 或 `fix` 提交会发布新版本，更新 [`lib/core.sh`](lib/core.sh) 里的 `FUSHO_VERSION` 和 CHANGELOG，并更新 Homebrew formula。
 

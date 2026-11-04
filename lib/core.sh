@@ -47,12 +47,23 @@ fusho_say() {
 }
 
 fusho_die() {
+  if fusho_ui_err; then
+    fusho_ui_log ERROR "$1"
+    exit "${2:-1}"
+  fi
   fusho_say 0 "fusho: $1" >&2
   exit "${2:-1}"
 }
 
 fusho_warn() {
-  fusho_say 0 "fusho: $1" >&2
+  if ! fusho_ui_err; then
+    fusho_say 0 "fusho: $1" >&2
+    return 0
+  fi
+  case "$1" in
+  "warning: "*) fusho_ui_log WARN "${1#warning: }" ;;
+  *) fusho_ui_log INFO "$1" ;;
+  esac
 }
 
 fusho_cleanup() {

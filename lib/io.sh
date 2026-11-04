@@ -28,6 +28,10 @@ fusho_read_plaintext() {
   fusho_rp_message="$2"
   if [ -n "${fusho_rp_message}" ]; then
     printf '%s\n' "${fusho_rp_message}" >"${fusho_rp_dest}"
+  elif fusho_ui_prompts; then
+    fusho_rp_typed=$(fusho_ui_write "Message" "Enter sends it, Ctrl+J starts a new line") || exit 1
+    [ -n "${fusho_rp_typed}" ] || fusho_die "refusing to send an empty message."
+    printf '%s\n' "${fusho_rp_typed}" >"${fusho_rp_dest}"
   else
     if fusho_interactive; then
       printf '%s\n' "Type the message, then press Ctrl-D on an empty line:" >&2
@@ -122,6 +126,15 @@ fusho_interactive() {
 
 fusho_prompt() {
   fusho_p_answer=""
+  if fusho_ui_prompts; then
+    fusho_p_hint=""
+    case "$1" in
+    *", "*) fusho_p_hint="${1#*, }" ;;
+    *) ;;
+    esac
+    fusho_ui_input "${1%%, *}" "${fusho_p_hint}"
+    return
+  fi
   printf '%s: ' "$1" >&2
   IFS= read -r fusho_p_answer || [ -n "${fusho_p_answer}" ] || return 1
   printf '%s\n' "${fusho_p_answer}"
