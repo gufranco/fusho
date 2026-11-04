@@ -9,41 +9,8 @@ fusho_version() {
   printf '%s\n' "${FUSHO_VERSION}"
 }
 
-fusho_wrap() {
-  awk -v width="${FUSHO_WIDTH}" -v indent="$1" '
-    function pad(n,   s) {
-      s = ""
-      while (n-- > 0) { s = s " " }
-      return s
-    }
-    length($0) <= width { print; next }
-    {
-      match($0, /^ */)
-      n = split($0, word, " ")
-      out = substr($0, 1, RLENGTH) word[1]
-      for (i = 2; i <= n; i++) {
-        if (length(out) + 1 + length(word[i]) > width) {
-          print out
-          out = pad(indent) word[i]
-        } else {
-          out = out " " word[i]
-        }
-      }
-      print out
-    }'
-}
-
-fusho_terminal() {
-  [ "${FUSHO_TERMINAL:-}" = 1 ] || [ -t 1 ]
-}
-
 fusho_say() {
-  fusho_s_text="$2"
-  if [ "${#fusho_s_text}" -le "${FUSHO_WIDTH}" ] || ! fusho_terminal; then
-    printf '%s\n' "${fusho_s_text}"
-    return 0
-  fi
-  printf '%s\n' "${fusho_s_text}" | fusho_wrap "$1"
+  printf '%s\n' "$1"
 }
 
 fusho_die() {
@@ -51,13 +18,13 @@ fusho_die() {
     fusho_ui_log ERROR "$1"
     exit "${2:-1}"
   fi
-  fusho_say 0 "fusho: $1" >&2
+  fusho_say "fusho: $1" >&2
   exit "${2:-1}"
 }
 
 fusho_warn() {
   if ! fusho_ui_err; then
-    fusho_say 0 "fusho: $1" >&2
+    fusho_say "fusho: $1" >&2
     return 0
   fi
   case "$1" in

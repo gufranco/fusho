@@ -20,7 +20,7 @@ Guidance for anyone, human or agent, changing fusho. What fusho is and how to us
 ## Names
 
 - Globals carry `FUSHO_` and are assigned outright, never read from the environment; function-scoped variables carry a per-function prefix, such as `fusho_cs_` in `fusho_cmd_send`.
-- Settings come from `FUSHO_<NAME>`, including its tuning values; test switches are `FUSHO_TERMINAL`, `FUSHO_TEST_SHELLS`, `FUSHO_TEST_RECORD`, `FUSHO_TEST_IMAGE`, `FUSHO_TEST_GUM`, `FUSHO_TEST_GUM_LOG`, `FUSHO_TEST_GUM_ANSWERS` and `FUSHO_TEST_GUM_SPIN`.
+- Settings come from `FUSHO_<NAME>`, including its tuning values; test switches are `FUSHO_TEST_SHELLS`, `FUSHO_TEST_RECORD`, `FUSHO_TEST_IMAGE`, `FUSHO_TEST_GUM`, `FUSHO_TEST_GUM_LOG`, `FUSHO_TEST_GUM_ANSWERS` and `FUSHO_TEST_GUM_SPIN`.
 - Output goes through `fusho_say`, `fusho_die` and `fusho_warn`, which hand over to the `fusho_ui_` helpers in [`lib/ui.sh`](lib/ui.sh) where gum draws.
 
 ## Behaviour

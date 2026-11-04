@@ -28,7 +28,7 @@ fake_sed() {
   local page widest
 
   # Act
-  page="$(FUSHO_TERMINAL=1 "${FUSHO_BIN}" help)"
+  page="$("${FUSHO_BIN}" help)"
 
   # Assert
   widest="$(printf '%s\n' "${page}" | widest_line)"
@@ -40,29 +40,14 @@ fake_sed() {
   local page widest
 
   # Act
-  page="$(FUSHO_TERMINAL=1 "${FUSHO_BIN}" version)"
+  page="$("${FUSHO_BIN}" version)"
 
   # Assert
   widest="$(printf '%s\n' "${page}" | widest_line)"
   [[ "${widest}" -le 80 ]]
 }
 
-@test "an error longer than 80 columns wraps between words on a terminal" {
-  # Arrange
-  local option="--this-option-name-is-long-enough-to-push-the-usage-hint-past-eighty"
-
-  # Act
-  FUSHO_TERMINAL=1 run "${FUSHO_BIN}" "${option}"
-
-  # Assert
-  assert_status 1
-  [[ "${#lines[@]}" -eq 3 ]]
-  assert_equal "${lines[0]}" "fusho: unknown option"
-  assert_equal "${lines[1]}" "'${option}'. run"
-  assert_equal "${lines[2]}" "'fusho help' for usage."
-}
-
-@test "an error sent to a pipe stays on one line, however long" {
+@test "an error stays on one line, however long" {
   # Arrange
   local option="--this-option-name-is-long-enough-to-push-the-usage-hint-past-eighty"
 
@@ -74,26 +59,13 @@ fake_sed() {
   assert_equal "${output}" "fusho: unknown option '${option}'. run 'fusho help' for usage."
 }
 
-@test "a word wider than 80 columns stays whole on its own line" {
-  # Arrange
-  local key="SHA256:a-fingerprint-prefix-long-enough-to-be-wider-than-eighty-columns-on-its-own"
-
-  # Act
-  FUSHO_TERMINAL=1 run fusho_test_call fusho_say 2 "fusho: no key matches ${key}"
-
-  # Assert
-  assert_status 0
-  assert_equal "${lines[0]}" "fusho: no key matches"
-  assert_equal "${lines[1]}" "  ${key}"
-}
-
-@test "a doctor row stays on one line on a terminal, however long" {
+@test "a doctor row stays on one line, however long" {
   # Arrange
   local dir="${FAKES}/a-folder-long-enough-to-pass-80"
   fake_sed "${dir}"
 
   # Act
-  FUSHO_TERMINAL=1 FUSHO_OS=Linux PATH="${dir}:${PATH}" run "${FUSHO_BIN}" doctor
+  FUSHO_OS=Linux PATH="${dir}:${PATH}" run "${FUSHO_BIN}" doctor
 
   # Assert
   assert_output_contains $'\n'"sed                ok       ${dir}/sed, gnu 4.9"$'\n'

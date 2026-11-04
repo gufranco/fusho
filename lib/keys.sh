@@ -122,12 +122,12 @@ fusho_reject_bad_pin() {
   fusho_rbp_count=""
   fusho_rbp_count=$(wc -l <"${fusho_rbp_selected_fps}" | tr -d ' ')
   if [ "${fusho_rbp_count}" -eq 0 ]; then
-    fusho_say 0 "fusho: no key of ${fusho_rbp_user} matches fingerprint prefix ${fusho_rbp_prefix}. available:" >&2
+    fusho_say "fusho: no key of ${fusho_rbp_user} matches fingerprint prefix ${fusho_rbp_prefix}. available:" >&2
     fusho_fingerprints "${fusho_rbp_supported}" >&2
     exit 1
   fi
   if [ "${fusho_rbp_count}" -gt 1 ]; then
-    fusho_say 0 "fusho: fingerprint prefix ${fusho_rbp_prefix} is ambiguous for ${fusho_rbp_user}. it matches:" >&2
+    fusho_say "fusho: fingerprint prefix ${fusho_rbp_prefix} is ambiguous for ${fusho_rbp_user}. it matches:" >&2
     cat "${fusho_rbp_selected_fps}" >&2
     exit 1
   fi

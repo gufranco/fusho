@@ -234,7 +234,7 @@ kit() {
   [[ "${lines[2]}" == "ERROR fusho: broken" ]]
 }
 
-@test "a long log line wraps between words" {
+@test "a long log line stays on one line" {
   # Arrange
   local word="abcdefghij" call
   call="fusho_ui_log INFO \"$(printf '%s ' "${word}" "${word}" "${word}" "${word}" "${word}" "${word}" "${word}" "${word}")\""
@@ -244,8 +244,8 @@ kit() {
 
   # Assert
   [[ "${status}" -eq 0 ]]
-  [[ "${#lines[@]}" -eq 2 ]]
-  [[ "${lines[1]}" == "  ${word}"* ]]
+  [[ "${#lines[@]}" -eq 1 ]]
+  [[ "${lines[0]}" == "INFO fusho: ${word} ${word} ${word} ${word} ${word} ${word} ${word} ${word}"* ]]
 }
 
 @test "choose, input and write return the answer" {

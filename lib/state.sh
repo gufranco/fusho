@@ -30,6 +30,5 @@ FUSHO_UI_STEP=""
 FUSHO_UI_THEMES="kodougu, catppuccin-mocha, catppuccin-latte, dracula, nord, gruvbox, tokyo-night, mono"
 FUSHO_DOCTOR_ROWS=""
 FUSHO_WORKSPACE=""
-FUSHO_WIDTH=80
 FUSHO_NL=$(printf '\nx')
 FUSHO_NL="${FUSHO_NL%x}"

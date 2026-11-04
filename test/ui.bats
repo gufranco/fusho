@@ -293,7 +293,7 @@ gum_called() {
   assert_equal "${output}" "${expected}"
 }
 
-@test "a long error wraps between words below its level" {
+@test "a long error stays on one line after its level" {
   # Arrange
   local option="--this-option-name-is-long-enough-to-push-the-usage-hint-past-eighty"
 
@@ -302,7 +302,7 @@ gum_called() {
 
   # Assert
   assert_status 1
-  assert_equal "${lines[0]}" "ERROR fusho: unknown option"
+  assert_equal "${output}" "ERROR fusho: unknown option '${option}'. run 'fusho help' for usage."
 }
 
 @test "--theme picks the palette over every environment setting" {
@@ -362,8 +362,7 @@ gum_called() {
 
   # Assert
   assert_status 1
-  assert_equal "${lines[0]}" "ERROR fusho: --theme must be one of kodougu, catppuccin-mocha, catppuccin-latte,"
-  assert_equal "${lines[1]}" "  dracula, nord, gruvbox, tokyo-night, mono, got: solarized"
+  assert_equal "${output}" "ERROR fusho: --theme must be one of kodougu, catppuccin-mocha, catppuccin-latte, dracula, nord, gruvbox, tokyo-night, mono, got: solarized"
 }
 
 @test "--theme without a value stops with the usage hint" {

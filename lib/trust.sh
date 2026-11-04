@@ -87,7 +87,7 @@ fusho_trust_refuse() {
       "Check the fingerprint with them out of band, then re-run with --accept-new-key."
     exit 1
   fi
-  fusho_say 0 "fusho: the keys published by $1 changed since you last messaged them." >&2
+  fusho_say "fusho: the keys published by $1 changed since you last messaged them." >&2
   printf '  pinned:  %s\n' "$2" >&2
   printf '  current: %s\n' "$3" >&2
   printf '  a key rotation looks exactly like an account takeover from here.\n' >&2

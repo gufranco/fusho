@@ -134,14 +134,8 @@ fusho_ui_log() {
   WARN) fusho_ul_colour="${FUSHO_UI_WARN}" ;;
   *) fusho_ul_colour="${FUSHO_UI_OK}" ;;
   esac
-  fusho_ul_lines=$(printf '%s fusho: %s\n' "${fusho_ul_level}" "${fusho_ul_text}" | fusho_wrap 2)
-  fusho_ul_first=$(printf '%s\n' "${fusho_ul_lines}" | sed -n '1p')
-  fusho_ul_rest=$(printf '%s\n' "${fusho_ul_lines}" | sed '1d')
   fusho_ul_label=$(fusho_ui_ink "${fusho_ul_colour}" --bold -- "${fusho_ul_level}")
-  printf '%s%s\n' "${fusho_ul_label}" "${fusho_ul_first#"${fusho_ul_level}"}" >&2
-  if [ -n "${fusho_ul_rest}" ]; then
-    printf '%s\n' "${fusho_ul_rest}" >&2
-  fi
+  printf '%s fusho: %s\n' "${fusho_ul_label}" "${fusho_ul_text}" >&2
 }
 
 fusho_ui_choose() {
