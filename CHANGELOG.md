@@ -1,5 +1,12 @@
 # Changelog
 
+# [3.1.0](https://github.com/gufranco/fusho/compare/v3.0.1...v3.1.0) (2026-11-04)
+
+
+### Features
+
+* draw the terminal interface with gum ([ccdb0c5](https://github.com/gufranco/fusho/commit/ccdb0c52c7905ce2be55904013b9f5e1af006674))
+
 ## [3.0.1](https://github.com/gufranco/fusho/compare/v3.0.0...v3.0.1) (2026-11-02)
 
 
