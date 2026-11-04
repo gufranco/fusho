@@ -195,6 +195,31 @@ teardown_file() {
   assert_output_contains "to: one.pub"
 }
 
+@test "a message after --keys-file is the message, not a recipient" {
+  # Arrange
+  local expected_status=0
+
+  # Act
+  run "${FUSHO_BIN}" send --keys-file "${WORK}/keys/one.pub" --no-clipboard 'meet at eight'
+
+  # Assert
+  assert_status "${expected_status}"
+  assert_output_contains "to: one.pub"
+  assert_output_contains "${FP_ONE}"
+}
+
+@test "a user name with a space is refused before any key is fetched" {
+  # Arrange
+  local expected_status=1
+
+  # Act
+  run "${FUSHO_BIN}" keys 'two words'
+
+  # Assert
+  assert_status "${expected_status}"
+  assert_output_contains "'two words' is not a user name"
+}
+
 @test "rejects a key file that does not exist" {
   # Arrange
   local expected_status=1

@@ -19,7 +19,7 @@
 
 </div>
 
-コマンドは5つ、テストは211件、POSIX `sh`のモジュール11個で動き、実行時に必要なのは`age`だけです。
+コマンドは5つ、テストは299件、POSIX `sh`のモジュール12個で動き、実行時に必要なのは`age`と`gum`だけです。
 
 > [!NOTE]
 > **脅威モデル。** fushoは秘密をチャット履歴から守ります。保存ポリシー、誰も設定した覚えのないバックアップ、2031年にそのチャンネルを引き継ぐ同僚から守ります。キーロガー、国家機関、そして念のためにと暗号化ブロックのすぐ下に平文を貼る同僚からは守れません。それらは[できないこと](#what-it-does-not-do)に書いてあり、たいていはもっと大きな予算が必要です。
@@ -27,6 +27,10 @@
 `fusho`は日本語の「封書」です。一人に宛てて封をし、その人だけが開ける手紙です。
 
 ---
+
+<p align="center">
+  <img src="screens/hero.gif" alt="ターミナルで実行した fusho：最初の入力から結果まで" width="800">
+</p>
 
 ```console
 $ fusho send --no-banner alice 'database password: correct-horse-battery-staple'
@@ -64,6 +68,7 @@ GitHubのアカウントはすべて、SSH公開鍵を`github.com/<user>.keys`�
 | POSIX `sh` | ツール本体 | どこにでもプリインストールされています。`bash`は不要です |
 | `curl`、`ssh-keygen`、`openssl` | 鍵の取得、フィンガープリント、base64 | macOSとLinuxにプリインストールされています |
 | [`age`](https://github.com/FiloSottile/age) | 暗号化エンジン | `brew install age`または`apt install age`。Homebrewのformulaが自動でインストールします |
+| [`gum`](https://github.com/charmbracelet/gum) | 端末の画面：メニュー、入力、表、配色 | `brew install gum`。Homebrewのformulaが自動でインストールします |
 | `qrencode` | 任意。`--qr`でのみ使います | `brew install qrencode`または`apt install qrencode` |
 
 > [!IMPORTANT]
@@ -87,6 +92,7 @@ make install
 
 ```console
 $ fusho doctor
+gum                ok       /opt/homebrew/bin/gum, 2.0.2
 age                ok       /opt/homebrew/bin/age, v1.3.2
 curl               ok       /usr/bin/curl
 ssh-keygen         ok       /usr/bin/ssh-keygen
@@ -125,6 +131,7 @@ identities         ok       2 usable key pair(s) under ~/.ssh
 | `--qr` | メッセージをQRコードで出力します |
 | `--no-banner` | ブロックの上のメモを省きます |
 | `--no-clipboard` | 結果をクリップボードにコピーしません |
+| `--theme <name>` | 端末の画面の配色 |
 
 ```bash
 printf 'the secret' | fusho send alice          # stdin keeps it out of the process list
@@ -138,6 +145,14 @@ fusho read                                      # with nothing piped, reads the 
 
 > [!TIP]
 > 秘密は引数ではなく標準入力で渡してください。引数はプロセス一覧を通じて、そのマシンの全ユーザーから見えます。
+
+### テーマ
+
+`gum`がインストールされた端末では、fushoはメニュー、入力、表、メッセージをgumで描きます。パイプやスクリプトでは、出力はプレーンテキストのままです。配色は`--theme`、なければ`FUSHO_THEME`、なければ`KODOUGU_THEME`で選びます。最後のものはkodouguのすべてのツールが共有します：`kodougu`（既定）、`catppuccin-mocha`、`catppuccin-latte`、`dracula`、`nord`、`gruvbox`、`tokyo-night`、`mono`。`KODOUGU_ACCENT=#RRGGBB`はアクセント色だけを置き換え、`NO_COLOR`は色を消します。
+
+```bash
+export KODOUGU_THEME=catppuccin-mocha
+```
 
 ### 鍵のホスト
 
@@ -325,6 +340,39 @@ fusho はPOSIX `sh`です。下の各行は、暗号化から復号までの往�
 
 Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その新しい Homebrew 版、Homebrew の uutils ツールという、よく使われる 5 つのツールセットのどれでも動きます。macOS 標準のツールのうち Homebrew に新しい版があるものは、bash と zsh から openssl、curl、ssh-keygen、gzip まで、両方の版でテストします。CI はそれぞれで全テストを実行し、`fusho doctor` は主要ツールの系統とバージョン（`gnu 9.7`、`uutils 0.12.0`、`bsd 20200816` など）を表示するので、不具合報告でどのツールが動いたかが分かります。
 
+<a id="screens"></a>
+
+## 画面
+
+<details>
+<summary><code>make screens</code> で実際の実行から録画したすべての画面</summary>
+<br>
+
+<table>
+<tr>
+<td width="50%" valign="top"><img src="screens/menu.png" alt="fusho: メニュー"><br><sub>メニュー</sub></td>
+<td width="50%" valign="top"><img src="screens/recipient.png" alt="fusho: 最初のメッセージで確認すべき鍵を表示"><br><sub>最初のメッセージで確認すべき鍵を表示</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/keys.png" alt="fusho: 公開されている鍵"><br><sub>公開されている鍵</sub></td>
+<td width="50%" valign="top"><img src="screens/read.png" alt="fusho: 開いたメッセージ"><br><sub>開いたメッセージ</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/refused.png" alt="fusho: 前回のメッセージから変わった鍵"><br><sub>前回のメッセージから変わった鍵</sub></td>
+<td width="50%" valign="top"><img src="screens/paste.png" alt="fusho: 開くメッセージの貼り付け"><br><sub>開くメッセージの貼り付け</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/error.png" alt="fusho: エラー"><br><sub>エラー</sub></td>
+<td width="50%" valign="top"><img src="screens/doctor.png" alt="fusho: doctor が必要なツールをすべて確認"><br><sub>doctor が必要なツールをすべて確認</sub></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="screens/themes.png" alt="fusho: 6 つのテーマでのバージョン表示"><br><sub>6 つのテーマでのバージョン表示</sub></td>
+<td width="50%" valign="top"><img src="screens/help.png" alt="fusho: ヘルプ"><br><sub>ヘルプ</sub></td>
+</tr>
+</table>
+
+</details>
+
 <a id="development"></a>
 
 ## 開発
@@ -337,6 +385,7 @@ Linux の GNU coreutils と uutils coreutils、macOS 標準のツール、その
 | `make test-all` | すべてのシェルで同じテスト。macOS では bash と zsh の両方の版を含みます |
 | `make test-linux` | Ubuntu コンテナで同じテスト |
 | `make coverage` | この Mac と Ubuntu コンテナでの bashcov の行カバレッジを合算し、CI が強制する 100% のゲート |
+| `make screens` | macOS で、README の画面を実物のツールから VHS で録画します |
 
 [`bin/fusho`](bin/fusho)は[`lib/`](lib)にある11個のモジュールを読み込みます。ビルドの手順はなく、インストールされるのはこのリポジトリのコードそのものです。テストは生成した鍵で実際の`age`と`openssl`を動かし、[`test/keyserver.py`](test/keyserver.py)が鍵のエンドポイントをローカルで提供するので、`curl`は本物のHTTPステータスコードを受け取ります。`main` への push で CI が通ると semantic-release が動き、`feat` か `fix` のコミットでリリースを公開し、[`lib/core.sh`](lib/core.sh) の `FUSHO_VERSION` と CHANGELOG を更新し、Homebrew の formula を更新します。
 

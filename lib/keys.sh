@@ -19,6 +19,10 @@ fusho_keys_url() {
   fusho_ku_host=""
   fusho_ku_user=$(fusho_target_user "$1")
   fusho_ku_host=$(fusho_target_host "$1")
+  case "${fusho_ku_user}" in
+  "" | *[![:alnum:]._-]*) fusho_die "'${fusho_ku_user}' is not a user name. a user name holds only letters, digits, dots, dashes and underscores." ;;
+  *) ;;
+  esac
   case "${fusho_ku_host}" in
   github) printf '%s/%s.keys\n' "${FUSHO_GITHUB_BASE}" "${fusho_ku_user}" ;;
   gitlab) printf 'https://gitlab.com/%s.keys\n' "${fusho_ku_user}" ;;

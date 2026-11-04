@@ -10,6 +10,8 @@ printf '#!/bin/sh\nexec %s %q "$@"\n' "${fusho_shell_words[*]}" "${FUSHO_REPO_RO
 chmod +x "${fusho_bin_next}"
 mv -f "${fusho_bin_next}" "${FUSHO_BIN}"
 export FUSHO_TESTS_DIR FUSHO_REPO_ROOT FUSHO_BIN
+PATH="${FUSHO_TESTS_DIR}/bin:${PATH}"
+export PATH
 
 fixture_workspace() {
   local dir
@@ -94,7 +96,7 @@ sandbox_path_excluding() {
   local tool resolved
   mkdir -p "${dir}"
   for tool in bash env curl ssh-keygen openssl awk sed grep wc tr sort cat mktemp \
-    chmod rm head fold cut dirname basename uname cmp mkdir touch mv ln ls find sleep seq date age python3 gzip gunzip qrencode; do
+    chmod rm head fold cut dirname basename uname cmp mkdir touch mv ln ls find sleep seq date age python3 gzip gunzip qrencode gum; do
     if [[ "${tool}" == "${excluded}" ]]; then
       continue
     fi

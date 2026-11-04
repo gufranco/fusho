@@ -22,3 +22,5 @@ complete -c fusho -n '__fish_seen_subcommand_from read' -l identity-command -r -
 complete -c fusho -n '__fish_seen_subcommand_from read' -l clipboard -d 'read the message from the clipboard'
 complete -c fusho -n '__fish_seen_subcommand_from read' -l require-signature -d 'refuse a message that carries no signature'
 complete -c fusho -n '__fish_seen_subcommand_from read' -l ignore-expiry -d 'open a message the sender marked as expired'
+
+complete -c fusho -l theme -r -a 'kodougu catppuccin-mocha catppuccin-latte dracula nord gruvbox tokyo-night mono' -d 'colours of the terminal interface'
