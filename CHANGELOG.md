@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.1](https://github.com/gufranco/fusho/compare/v3.1.0...v3.1.1) (2026-11-05)
+
+
+### Bug Fixes
+
+* let the terminal wrap long messages ([26168c7](https://github.com/gufranco/fusho/commit/26168c7d703141fe718c72fbd4cf241d307e501d))
+* **ui:** line up table cells with wide letters ([ac7cddc](https://github.com/gufranco/fusho/commit/ac7cddc1fd5d94763da5b1dbc735917663c8b7b6))
+
 # [3.1.0](https://github.com/gufranco/fusho/compare/v3.0.1...v3.1.0) (2026-11-04)
 
 

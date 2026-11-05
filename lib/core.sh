@@ -3,7 +3,7 @@
 # shellcheck source=SCRIPTDIR/state.sh
 . "${FUSHO_LIB:?}/state.sh"
 
-FUSHO_VERSION="3.1.0"
+FUSHO_VERSION="3.1.1"
 
 fusho_version() {
   printf '%s\n' "${FUSHO_VERSION}"
