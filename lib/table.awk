@@ -32,6 +32,25 @@ function tint(text) {
   return txt
 }
 
+BEGIN {
+  for (code = 128; code < 256; code++) {
+    byte[sprintf("%c", code)] = code
+  }
+}
+
+function columns_of(text,   i, n, b, cells) {
+  cells = 0
+  n = length(text)
+  for (i = 1; i <= n; i++) {
+    b = byte[substr(text, i, 1)]
+    if (b >= 128 && b < 192) {
+      continue
+    }
+    cells += (b >= 227 && b <= 237) || b >= 240 || (b == 239 && substr(text, i + 1, 1) ~ /[\274\275]/) ? 2 : 1
+  }
+  return cells
+}
+
 function pad(count,   out) {
   out = ""
   while (count-- > 0) {
@@ -43,8 +62,8 @@ function pad(count,   out) {
 {
   rows[NR] = $0
   for (column = 1; column <= NF; column++) {
-    if (length(plain($column)) > width[column]) {
-      width[column] = length(plain($column))
+    if (columns_of(plain($column)) > width[column]) {
+      width[column] = columns_of(plain($column))
     }
   }
   if (NF > columns) {
@@ -64,7 +83,7 @@ END {
       value = column <= count ? cell[column] : ""
       shown = plain(value)
       colour = row == 1 ? acc : tint(value)
-      line = line (column > 1 ? "   " : "") paint(shown, colour, row == 1) pad(width[column] - length(shown))
+      line = line (column > 1 ? "   " : "") paint(shown, colour, row == 1) pad(width[column] - columns_of(shown))
     }
     print line
     if (row == 1) {

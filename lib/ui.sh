@@ -218,7 +218,7 @@ fusho_ui_table() {
 }
 
 fusho_ui_table_body() {
-  awk -F '\t' -v acc="${FUSHO_UI_ACCENT}" -v ok="${FUSHO_UI_OK}" -v warn="${FUSHO_UI_WARN}" \
+  LC_ALL=C awk -F '\t' -v acc="${FUSHO_UI_ACCENT}" -v ok="${FUSHO_UI_OK}" -v warn="${FUSHO_UI_WARN}" \
     -v bad="${FUSHO_UI_ERR}" -v txt="${FUSHO_UI_TEXT}" -v mut="${FUSHO_UI_MUTED}" -v dash="$1" \
     -f "${FUSHO_LIB}/table.awk"
 }

@@ -373,6 +373,20 @@ kit() {
   [[ "${output}" == *"----"* ]]
 }
 
+@test "a mono table measures accented and wide letters by screen width" {
+  # Arrange
+  local call="printf 'Name\\tShort\\nStra\\303\\237e\\tX\\nabcdef\\tY\\n\\346\\227\\245\\346\\234\\254\\tZ\\n' | fusho_ui_table"
+
+  # Act
+  KODOUGU_THEME=mono run kit "${call}"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == *"$(printf 'Stra\303\237e   X')"* ]]
+  [[ "${output}" == *"abcdef   Y"* ]]
+  [[ "${output}" == *"$(printf '\346\227\245\346\234\254     Z')"* ]]
+}
+
 @test "the closing sentence, chips, danger box and summary carry their text" {
   # Arrange
   local call='fusho_ui_done Finished; fusho_ui_chip state; fusho_ui_danger Careful detail; fusho_ui_summary "Disk:" one "" two'
