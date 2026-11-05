@@ -19,7 +19,7 @@ English | [日本語](README.ja.md) | [简体中文](README.zh-Hans.md) | [繁�
 
 </div>
 
-Five commands, 299 tests, 12 POSIX `sh` modules, and no runtime dependency beyond `age` and `gum`.
+Five commands, 310 tests, 12 POSIX `sh` modules, and no runtime dependency beyond `age` and `gum`.
 
 > [!NOTE]
 > **Threat model.** fusho keeps a secret out of chat history: the retention policy, the backup nobody remembers configuring, the colleague who inherits the channel in 2031. It does not protect against a keylogger, a nation-state, or the coworker who pastes the plaintext right under the encrypted block "just in case". Those are covered in [what it does not do](#what-it-does-not-do), and mostly by a much larger budget.
