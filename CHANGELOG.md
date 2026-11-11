@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.1.2](https://github.com/gufranco/fusho/compare/v3.1.1...v3.1.2) (2026-11-11)
+
+
+### Bug Fixes
+
+* list stat in doctor ([237818c](https://github.com/gufranco/fusho/commit/237818c7a20c5f9c1b2018b579aa0813d1342118))
+* read file sizes past 4 GiB under BusyBox ([2faadb3](https://github.com/gufranco/fusho/commit/2faadb3a99bf9703cb8e8e91449073aea7cb8ef4))
+* size a file whose name starts with a dash ([0622a37](https://github.com/gufranco/fusho/commit/0622a378bbe4b70b5328f424fb895dc9ee389644))
+
 ## [3.1.1](https://github.com/gufranco/fusho/compare/v3.1.0...v3.1.1) (2026-11-05)
 
 
