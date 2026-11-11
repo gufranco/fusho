@@ -43,7 +43,7 @@ fusho_encrypt_openssl() {
     fusho_die "could not convert the recipient SSH key to PKCS8."
   fi
   fusho_eo_capacity=$(fusho_rsa_capacity "${fusho_eo_pem}") || exit 1
-  fusho_eo_size=$(wc -c <"${fusho_eo_plaintext}" | tr -d ' ')
+  fusho_eo_size=$(fusho_file_bytes "${fusho_eo_plaintext}")
   if [ "${fusho_eo_size}" -gt "${fusho_eo_capacity}" ]; then
     fusho_die "message is ${fusho_eo_size} bytes but this RSA key can carry only ${fusho_eo_capacity}. install age to remove the limit."
   fi

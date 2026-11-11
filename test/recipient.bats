@@ -342,3 +342,15 @@ teardown_file() {
   assert_status "${expected_status}"
   assert_output_contains "no usable recipient key"
 }
+
+@test "a file past 4 GiB reports its whole size" {
+  # Arrange
+  dd if=/dev/zero of="${WORK}/large.img" bs=1 count=0 seek=4915200123 2>/dev/null
+
+  # Act
+  run fusho_test_call fusho_file_bytes "${WORK}/large.img"
+
+  # Assert
+  [[ "${status}" -eq 0 ]]
+  [[ "${output}" == "4915200123" ]]
+}

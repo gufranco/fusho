@@ -54,7 +54,7 @@ fusho_base64_valid() {
   if LC_ALL=C grep -q '[^A-Za-z0-9+/=]' "$1"; then
     return 1
   fi
-  fusho_bv_size=$(wc -c <"$1" | tr -d ' ')
+  fusho_bv_size=$(fusho_file_bytes "$1")
   [ $((fusho_bv_size % 4)) -eq 0 ]
 }
 

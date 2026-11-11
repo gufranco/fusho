@@ -91,8 +91,8 @@ fusho_compress() {
   if ! gzip -c "${fusho_c_plain}" >"${fusho_c_dest}" 2>/dev/null; then
     return 1
   fi
-  fusho_c_packed=$(wc -c <"${fusho_c_dest}" | tr -d " ")
-  fusho_c_original=$(wc -c <"${fusho_c_plain}" | tr -d " ")
+  fusho_c_packed=$(fusho_file_bytes "${fusho_c_dest}")
+  fusho_c_original=$(fusho_file_bytes "${fusho_c_plain}")
   if [ "${fusho_c_packed}" -ge "${fusho_c_original}" ]; then
     return 1
   fi
@@ -112,7 +112,7 @@ fusho_emit_qr() {
   if ! fusho_have qrencode; then
     fusho_die "--qr needs qrencode. install it with: brew install qrencode, or apt install qrencode."
   fi
-  fusho_eq_size=$(wc -c <"${fusho_eq_armor}" | tr -d " ")
+  fusho_eq_size=$(fusho_file_bytes "${fusho_eq_armor}")
   if [ "${fusho_eq_size}" -gt 2900 ]; then
     fusho_die "the message is too large for a QR code. send it as text instead."
   fi
