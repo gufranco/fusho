@@ -572,7 +572,7 @@ fusho_cmd_doctor() {
   fusho_doctor_tool age "install with: brew install age, or apt install age" "${fusho_cd_note}" || fusho_cd_failures=$((fusho_cd_failures + 1))
   fusho_doctor_tool curl "curl is required to fetch keys from GitHub" || fusho_cd_failures=$((fusho_cd_failures + 1))
   fusho_doctor_tool ssh-keygen "install openssh" || fusho_cd_failures=$((fusho_cd_failures + 1))
-  for fusho_cd_tool in awk sed tr date; do
+  for fusho_cd_tool in awk sed tr date stat; do
     fusho_cd_note=""
     if fusho_have "${fusho_cd_tool}"; then
       fusho_cd_path=$(command -v "${fusho_cd_tool}")
