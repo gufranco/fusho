@@ -4,10 +4,10 @@ Set Height 1300
 Hide
 Type ". ./setup.sh"
 Enter
-Sleep 1s
+Sleep 3s
 Show
 Sleep 800ms
-Type "fusho keys gufranco"
+Type "fusho keys octocat"
 Enter
 Sleep 5s
 Screenshot keys.png
@@ -34,18 +34,18 @@ Enter
 Show
 Sleep 800ms
 Hide
-Type "fusho send gufranco hi --no-clipboard >/dev/null 2>&1; (/usr/bin/python3 -m http.server 8765 --bind 127.0.0.1 --directory forge >/dev/null 2>&1 &); sleep 2; export FUSHO_GITHUB_BASE=http://127.0.0.1:8765; clear"
+Type "fusho send octocat hi --no-clipboard >/dev/null 2>&1; cp -f rotated.keys forge/octocat.keys; clear"
 Enter
-Sleep 9s
+Sleep 4s
 Show
 Sleep 800ms
-Type "fusho send gufranco hi"
+Type "fusho send octocat hi"
 Enter
 Sleep 5s
 Screenshot refused.png
 Sleep 1s
 Hide
-Type "unset FUSHO_GITHUB_BASE; pkill -f 'http.server 8765'; clear"
+Type "clear"
 Enter
 Show
 Sleep 800ms

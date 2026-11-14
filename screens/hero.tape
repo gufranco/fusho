@@ -15,7 +15,7 @@ Screenshot menu.png
 Sleep 1s
 Enter
 Sleep 1.2s
-Type "gufranco"
+Type "octocat"
 Sleep 500ms
 Enter
 Sleep 5s
