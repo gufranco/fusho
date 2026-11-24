@@ -28,7 +28,7 @@ jobs:
     outputs:
       macos: ${{ steps.choose.outputs.macos }}
     steps:
-      - uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a  # v2.22.4
+      - uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c  # v2.23.0
         with:
           egress-policy: audit
       - name: Run every macOS leg except on a bot pull request
@@ -51,7 +51,7 @@ jobs:
     name: lint and format
     runs-on: ubuntu-26.04
     steps:
-      - uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a  # v2.22.4
+      - uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c  # v2.23.0
         with:
           egress-policy: audit
       - uses: actions/checkout@v7.0.1
@@ -124,7 +124,7 @@ jobs:
             toolset: busybox
             coverage: false
     steps:
-      - uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a  # v2.22.4
+      - uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c  # v2.23.0
         with:
           egress-policy: audit
       - uses: actions/checkout@v7.0.1
@@ -163,7 +163,7 @@ jobs:
           printf '%s  %s\n' "${GUM_SHA256}" "${RUNNER_TEMP}/${name}.tar.gz" | sha256sum -c -
           tar -xzf "${RUNNER_TEMP}/${name}.tar.gz" -C "${RUNNER_TEMP}"
           sudo install -m 0755 "${RUNNER_TEMP}/${name}/gum" /usr/local/bin/gum
-      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199  # v1.338.0
+      - uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18  # v1.343.0
         if: matrix.coverage
         with:
           bundler-cache: true
@@ -211,7 +211,7 @@ jobs:
       matrix:
         include: ${{ fromJSON(needs.plan.outputs.macos) }}
     steps:
-      - uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a  # v2.22.4
+      - uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c  # v2.23.0
         with:
           egress-policy: audit
       - uses: actions/checkout@v7.0.1
@@ -225,7 +225,7 @@ jobs:
       - name: Install the uutils toolset
         if: matrix.toolset == 'uutils'
         run: brew install --formula uutils-coreutils uutils-diffutils uutils-findutils
-      - uses: ruby/setup-ruby@b3aaceaef7e0ee231b499e7b5f49c03fc1d32199  # v1.338.0
+      - uses: ruby/setup-ruby@be3c7df29b3349ec6bcfc6b4792f1cf9f5237d18  # v1.343.0
         if: matrix.coverage
         with:
           bundler-cache: true
@@ -269,7 +269,7 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 10
     steps:
-      - uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a  # v2.22.4
+      - uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c  # v2.23.0
         with:
           egress-policy: audit
       - uses: actions/checkout@v7.0.1
@@ -289,7 +289,7 @@ jobs:
     runs-on: ubuntu-26.04
     container: debian:stable-slim
     steps:
-      - uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a  # v2.22.4
+      - uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c  # v2.23.0
         with:
           egress-policy: audit
       - name: Install shells and dependencies
@@ -312,7 +312,7 @@ jobs:
     runs-on: ubuntu-26.04
     container: alpine:latest
     steps:
-      - uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a  # v2.22.4
+      - uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c  # v2.23.0
         with:
           egress-policy: audit
       - name: Install dependencies
@@ -342,7 +342,7 @@ jobs:
     needs: [lint, test-linux]
     runs-on: macos-26
     steps:
-      - uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a  # v2.22.4
+      - uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c  # v2.23.0
         with:
           egress-policy: audit
       - uses: actions/checkout@v7.0.1
@@ -380,7 +380,7 @@ jobs:
     runs-on: ubuntu-26.04
     needs: interop-encrypt
     steps:
-      - uses: step-security/harden-runner@1d88384fd173af6ecb012dfd0264a306b711241a  # v2.22.4
+      - uses: step-security/harden-runner@aebdcf6156ab6691adf63218240e476564a1ed4c  # v2.23.0
         with:
           egress-policy: audit
       - uses: actions/checkout@v7.0.1
